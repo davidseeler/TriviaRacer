@@ -39,8 +39,15 @@ createLobbyMsg = function(){
 createLobby = function(lobbyID, userID){
     let table = $("lobbyTable");
     let joinButton = "<button value='" + lobbyID + "' onclick='joinLobby(value)' id='joinButton'>Join</button>";
+    let categoryOptions = "<select>" + "<option value='General Knowledge'>General Knowledge</option>" +
+    "<option value='Film'>Film</option>" + "<option value='Music'>Music</option>" + "<option value='Television'>Television</option>" +
+    "<option value='Video Games'>Video Games</option>" + "<option value='Science & Nature'>Science & Nature</option>" + "<option value='Science: Computers'>Computers</option>" +
+    "<option value='Science: Mathetmatics'>Mathematics</option>" + "<option value='Sports'>Sports</option>" + "<option value='Geography'>Geography</option>" +
+    "<option value='History'>History</option>" + "<option value='Politics'>Politics</option>" + "<option value='Art'>Art</option>" +
+    "<option value='Celebrities'>Celebrities</option>" + "<option value='Animals'>Animals</option>" + "<option value='Vehicles'>Vehicles</option>" + 
+    "<option value='Anime & Manga'>Anime & Manga</option>" + "<option value='Cartoon & Animations'>Cartoon & Animations</option>" + "</select>";
     table.innerHTML += "<tr><td><span>" + userID + "</span></td><td id='lobbyCount" + lobbyID + "'>1/5</td><td>" + 
-    joinButton + "</td></tr>";
+    "<label></label>" + categoryOptions + "</td><td>" + joinButton + "</td></tr>";
 }
 
 joinLobby = function(value){

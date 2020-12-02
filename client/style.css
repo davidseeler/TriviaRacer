@@ -1,3 +1,16 @@
 #ctx{
     border: 2px solid black;
 }
+
+#lobbyTable{
+    border: 1px solid black;
+}
+
+#lobbyTable th{
+    text-align: center;
+}
+
+#lobbyTable td, #lobbyTable th{
+    text-align: center;
+    border: 1px solid black;
+}

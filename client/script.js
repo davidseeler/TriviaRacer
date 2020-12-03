@@ -44,10 +44,10 @@ socket.on("broadcast", function(data){
     }
     if (data.type == "deleteLobby"){
         $("lobbyRow" + data.lobbyID).remove();
-        console.log(data.name);
-        if (name == data.name){
-            $("createLobbyButton").removeAttribute("disabled");
-        }
+        $("createLobbyButton").removeAttribute("disabled");
+    }
+    if (data.type == "playerHop"){
+        playerHop(data.lobbyID, data.name, data.size);
     }
 });
 
@@ -80,7 +80,6 @@ createLobby = function(lobbyID, nameFromServer, size, category){
         $("category" + lobbyID).setAttribute("disabled", true);
     }
     else{
-        console.log("made it");
         host = true;
         $("createLobbyButton").setAttribute("disabled", true);
         $("joinButton" + lobbyID).setAttribute("disabled", true);
@@ -92,6 +91,7 @@ joinLobby = function(value){
         lobbyID: value,
         name: name
     });
+    $("joinButton" + value).setAttribute("disabled", true);
 };
 
 updateLobbyCount = function(lobbyID, size){
@@ -107,4 +107,9 @@ changeCategory = function(id){
         lobbyID: id,
         category: $("category" + id).value
     });
+}
+
+playerHop = function(lobbyID, name, size){
+    $("lobbyCount" + lobbyID).innerHTML = size + "/5";
+    $("joinButton" + lobbyID).removeAttribute("disabled");
 }

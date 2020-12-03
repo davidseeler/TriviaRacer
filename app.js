@@ -1,6 +1,7 @@
-var express = require('express');
-var app = express();
-var serv = require('http').Server(app);
+// Server setup
+let express = require('express');
+let app = express();
+let serv = require('http').Server(app);
  
 app.get('/',function(req, res) {
 	res.sendFile(__dirname + '/client/index.html');
@@ -10,13 +11,16 @@ app.use('/client',express.static(__dirname + '/client'));
 serv.listen(process.env.PORT || 2000);
 console.log("Server started.");
  
-let SOCKET_LIST = {};
 
+// Global variables
+let SOCKET_LIST = {};
 let connCount = 0;
 let lobbyCount = 0;
 let lobbies = {};
 let hosts = {};
 var io = require('socket.io')(serv,{});
+
+// On new connection, instantiate player
 io.sockets.on('connection', function(socket){
 	connCount++;
 	socket.id = Math.random();
@@ -29,16 +33,19 @@ io.sockets.on('connection', function(socket){
 
 	socket.emit("playerInfo", socket.number);
 
+	// On disconnnection
 	socket.on('disconnect',function(){
 		delete SOCKET_LIST[socket.id];
 		connCount--;
 		updateConnCount();
 	});
 	
+	// On player changes name
 	socket.on("updateName", function(data){
 		socket.number = data;
 	});
 
+	// On player creating a new lobby
 	socket.on("createLobby", function(data){
 		lobbies[lobbyCount] = {};
 		lobbies[lobbyCount]['players'] = [data];
@@ -54,6 +61,7 @@ io.sockets.on('connection', function(socket){
 		lobbyCount++;
 	});
 
+	// On player joining a lobby
 	socket.on("joinLobby", function(data){
 		console.log(lobbies);
 		sizeOfLobby = lobbies[data.lobbyID]['players'].length;
@@ -82,6 +90,7 @@ io.sockets.on('connection', function(socket){
 		console.log(lobbies);
 	});
 
+	// On host changing category of lobby
 	socket.on("changeCategory", function(data){
 		lobbies[data.lobbyID]['category'] = data.category;
 		broadcast({
@@ -92,6 +101,7 @@ io.sockets.on('connection', function(socket){
 	});
 });
  
+// 40 FPS execution
 setInterval(function(){
 	var pack = [];
 	for(var i in SOCKET_LIST){
@@ -108,6 +118,7 @@ setInterval(function(){
 	}
 },1000/25);
 
+// Message to be sent to all clients
 broadcast = function(msg){
 	for(var i in SOCKET_LIST){
 		var socket = SOCKET_LIST[i];
@@ -140,6 +151,12 @@ removeIfInLobby = function(name){
 				if ((lobbies[lobby]['players'][i]) == name){
 					delete lobbies[lobby]['players'][i];
 					lobbies[lobby]['players'].length -= 1;
+					broadcast({
+						type: "playerHop",
+						lobbyID: lobby,
+						name: name,
+						size: lobbies[lobby]['players'].length
+					});
 				}
 			}
 		}

@@ -54,6 +54,11 @@ socket.on("broadcast", function(data){
     if (data.type == "lobbyFull"){
         lockLobby(data.lobbyID);
     }
+    if (data.type == "startGame"){
+        if (data.party.includes(name)){
+            startGame(data);
+        }
+    }
 });
 
 sendName = function(){
@@ -129,18 +134,17 @@ lockLobby = function(lobbyID){
     $("joinButton" + lobbyID).setAttribute("disabled", true);
 }
 
-startGame = function(){
-    let questions = "";
-    let party = [];
-    let temp = "";
+startGameMsg = function(){
     socket.emit("startGame", name);
-    socket.on("startGame", function(data){
-        for (let result in data.questions['results']){
-            temp += data.questions['results'][result]['question'] + "\n\n";
-        }
-        $("question").innerHTML = temp;
-        assignPlayers(data.party);
-    });
+}
+
+startGame = function(data){
+    let temp = "";
+    for (let result in data.questions['results']){
+        temp += data.questions['results'][result]['question'] + "\n\n";
+    }
+    $("question").innerHTML = temp;
+    assignPlayers(data.party);
 
     // Load Game Page HTML
     loadGamePage();

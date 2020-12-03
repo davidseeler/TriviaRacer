@@ -123,7 +123,8 @@ io.sockets.on('connection', function(socket){
 		let category = "category=" + lobbies[lobbyID]['category'];
 		let triviaQuestions = getData(category);
 		triviaQuestions.then(function(result){
-			socket.emit("startGame", {
+			broadcast({
+				type: "startGame",
 				lobbyID: hosts[data],
 				party: party,
 				questions: result

@@ -9,27 +9,33 @@
     </head>
     <body>
         <div class="container">
-            <div class="row">
-                <h1 id="title">TRIVIA RACER</h1>
-                <p>Players Online: <span id="playerCount">0</span></p>
+            <div id="homePage">
+                <div class="row">
+                    <h1 id="title">TRIVIA RACER</h1>
+                    <p>Players Online: <span id="playerCount">0</span></p>
+                </div>
+                <div class="row">
+                    <label>Choose your nickname: </label>
+                    <input type="text" id="nameInput">
+                    <button id="nameButton" onclick="sendName()">Confirm</button>
+                </div>
+                <div class="row">
+                    <button onclick="createLobbyMsg()" id="createLobbyButton">Create New Lobby</button>
+                    <button onclick="startGame()" id="startButton" disabled>Start Game</button>
+                </div>
+                <div class="row">
+                    <table id="lobbyTable">
+                        <tr>
+                            <th>Host</th><th>Capacity</th><th>Category</th><th></th>
+                        </tr>
+                    </table>
+                </div>
+                <div class="row">
+                    <canvas id="ctx"></canvas>
+                </div>
             </div>
-            <div class="row">
-                <label>Choose your nickname: </label>
-                <input type="text" id="nameInput">
-                <button id="nameButton" onclick="sendName()">Confirm</button>
-            </div>
-            <div class="row">
-                <button onclick="createLobbyMsg()" id="createLobbyButton">Create New Lobby</button>
-            </div>
-            <div class="row">
-                <table id="lobbyTable">
-                    <tr>
-                        <th>Host</th><th>Capacity</th><th>Category</th><th></th>
-                    </tr>
-                </table>
-            </div>
-            <div class="row">
-                <canvas id="ctx"></canvas>
+            <div id="gamePage">
+                <button id="backButton" onclick="goBackHome()">Back</button>
             </div>
         </div>
         <script src="client/script.js"></script>

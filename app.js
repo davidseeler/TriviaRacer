@@ -99,6 +99,12 @@ io.sockets.on('connection', function(socket){
 			category: data.category
 		});
 	});
+
+	socket.on("startGame", function(data){
+		socket.emit("startGame", {
+			lobbyID: hosts[data]
+		});
+	});
 });
  
 // 40 FPS execution

@@ -65,13 +65,13 @@ createLobby = function(lobbyID, nameFromServer, size, category){
     let newLobby = document.createElement('tr');
     newLobby.setAttribute("id", "lobbyRow" + lobbyID);
     let joinButton = "<button value='" + lobbyID + "' onclick='joinLobby(value)' id='joinButton" + lobbyID + "'>Join</button>";
-    let categoryOptions = "<select id='category" + lobbyID + "' onchange='changeCategory(" + lobbyID + ")' value='" + category + "'>" + "<option value='General Knowledge'>General Knowledge</option>" +
-    "<option value='Film'>Film</option>" + "<option value='Music'>Music</option>" + "<option value='Television'>Television</option>" +
-    "<option value='Video Games'>Video Games</option>" + "<option value='Science & Nature'>Science & Nature</option>" + "<option value='Science: Computers'>Computers</option>" +
-    "<option value='Science: Mathetmatics'>Mathematics</option>" + "<option value='Sports'>Sports</option>" + "<option value='Geography'>Geography</option>" +
-    "<option value='History'>History</option>" + "<option value='Politics'>Politics</option>" + "<option value='Art'>Art</option>" +
-    "<option value='Celebrities'>Celebrities</option>" + "<option value='Animals'>Animals</option>" + "<option value='Vehicles'>Vehicles</option>" + 
-    "<option value='Anime & Manga'>Anime & Manga</option>" + "<option value='Cartoon & Animations'>Cartoon & Animations</option>" + "</select>";
+    let categoryOptions = "<select id='category" + lobbyID + "' onchange='changeCategory(" + lobbyID + ")'>" + "<option value='9' selected>General Knowledge</option>" +
+    "<option value='11'>Film</option>" + "<option value='12'>Music</option>" + "<option value='14'>Television</option>" +
+    "<option value='15'>Video Games</option>" + "<option value='17'>Science & Nature</option>" + "<option value='18'>Computers</option>" +
+    "<option value='19'>Mathematics</option>" + "<option value='21'>Sports</option>" + "<option value='22'>Geography</option>" +
+    "<option value='23'>History</option>" + "<option value='24'>Politics</option>" + "<option value='25'>Art</option>" +
+    "<option value='26'>Celebrities</option>" + "<option value='27'>Animals</option>" + "<option value='28'>Vehicles</option>" + 
+    "<option value='31'>Anime & Manga</option>" + "<option value='32'>Cartoon & Animations</option>" + "</select>";
     newLobby.innerHTML = "<td><span>" + nameFromServer + "</span></td><td id='lobbyCount" + lobbyID + "'>" + size + "/5</td><td>" + 
     "<label></label>" + categoryOptions + "</td><td>" + joinButton + "</td>";
     table.appendChild(newLobby);
@@ -83,6 +83,7 @@ createLobby = function(lobbyID, nameFromServer, size, category){
         host = true;
         $("createLobbyButton").setAttribute("disabled", true);
         $("joinButton" + lobbyID).setAttribute("disabled", true);
+        $("startButton").removeAttribute("disabled");
     }
 }
 
@@ -92,6 +93,7 @@ joinLobby = function(value){
         name: name
     });
     $("joinButton" + value).setAttribute("disabled", true);
+    $("startButton").setAttribute("disabled", true);
 };
 
 updateLobbyCount = function(lobbyID, size){
@@ -112,4 +114,31 @@ changeCategory = function(id){
 playerHop = function(lobbyID, name, size){
     $("lobbyCount" + lobbyID).innerHTML = size + "/5";
     $("joinButton" + lobbyID).removeAttribute("disabled");
+}
+
+// Call Open Trivia Database API to retrieve question data
+getData = function(category){
+    return fetch("https://opentdb.com/api.php?amount=10&" + category)
+        .then(res => res.json())
+        .then(posts => console.log(posts));
+}
+
+startGame = function(){
+    let category = "category=";
+    let data = "";
+    socket.emit("startGame", name);
+    socket.on("startGame", function(data){
+        category += $("category" + data.lobbyID).value;
+        data = getData(category);
+    });
+
+    $("homePage").setAttribute("style", "display: none");
+    $("gamePage").setAttribute("style", "display: block");
+
+    console.log(data);
+}
+
+goBackHome = function(){
+    $("gamePage").setAttribute("style", "display: none");
+    $("homePage").setAttribute("style", "display: block");
 }

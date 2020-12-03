@@ -116,29 +116,35 @@ playerHop = function(lobbyID, name, size){
     $("joinButton" + lobbyID).removeAttribute("disabled");
 }
 
-// Call Open Trivia Database API to retrieve question data
-getData = function(category){
-    return fetch("https://opentdb.com/api.php?amount=10&" + category)
-        .then(res => res.json())
-        .then(posts => console.log(posts));
-}
-
 startGame = function(){
-    let category = "category=";
-    let data = "";
+    let questions = "";
+    let party = [];
+    let temp = "";
     socket.emit("startGame", name);
     socket.on("startGame", function(data){
-        category += $("category" + data.lobbyID).value;
-        data = getData(category);
+        for (let result in data.questions['results']){
+            temp += data.questions['results'][result]['question'] + "\n\n";
+        }
+        $("question").innerHTML = temp;
+        assignPlayers(data.party);
     });
 
+    // Load game page HTML
     $("homePage").setAttribute("style", "display: none");
+    $("ctx").setAttribute("style", "display: block");
     $("gamePage").setAttribute("style", "display: block");
+    $("playerBox").setAttribute("style", "display: block");
+}
 
-    console.log(data);
+assignPlayers = function(party){
+    $("player1").innerHTML = party[0];
+    $("player2").innerHTML = party[1];
+    $("player3").innerHTML = party[2];
+    $("player4").innerHTML = party[3];
 }
 
 goBackHome = function(){
     $("gamePage").setAttribute("style", "display: none");
     $("homePage").setAttribute("style", "display: block");
+    $("playerBox").setAttribute("style", "display: none");
 }

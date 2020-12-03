@@ -1,7 +1,8 @@
 // Server setup
-let express = require('express');
-let app = express();
-let serv = require('http').Server(app);
+const express = require('express');
+const app = express();
+const serv = require('http').Server(app);
+const fetch = require('node-fetch');
  
 app.get('/',function(req, res) {
 	res.sendFile(__dirname + '/client/index.html');
@@ -18,6 +19,8 @@ let connCount = 0;
 let lobbyCount = 0;
 let lobbies = {};
 let hosts = {};
+let activeGames = {};
+let categoryDict = {};
 var io = require('socket.io')(serv,{});
 
 // On new connection, instantiate player
@@ -49,7 +52,7 @@ io.sockets.on('connection', function(socket){
 	socket.on("createLobby", function(data){
 		lobbies[lobbyCount] = {};
 		lobbies[lobbyCount]['players'] = [data];
-		lobbies[lobbyCount]['category'] = 'General Knowledge';
+		lobbies[lobbyCount]['category'] = '9';
 		broadcast({
 			type: "createLobby",
 			lobbyID: lobbyCount,
@@ -63,7 +66,6 @@ io.sockets.on('connection', function(socket){
 
 	// On player joining a lobby
 	socket.on("joinLobby", function(data){
-		console.log(lobbies);
 		sizeOfLobby = lobbies[data.lobbyID]['players'].length;
 		if (sizeOfLobby < 5){
 			let isHost = false;
@@ -101,8 +103,24 @@ io.sockets.on('connection', function(socket){
 	});
 
 	socket.on("startGame", function(data){
-		socket.emit("startGame", {
-			lobbyID: hosts[data]
+		let lobbyID = hosts[data];
+		let party = [];
+		for (let i = 0; i < 4; i++){
+			if (lobbies[lobbyID]['players'][i] == null){
+				party[i] = "Empty";
+			}
+			else{
+				party[i] = lobbies[lobbyID]['players'][i];
+			}
+		}
+		let category = "category=" + lobbies[lobbyID]['category'];
+		let triviaQuestions = getData(category);
+		triviaQuestions.then(function(result){
+			socket.emit("startGame", {
+				lobbyID: hosts[data],
+				party: party,
+				questions: result
+			});
 		});
 	});
 });
@@ -167,4 +185,10 @@ removeIfInLobby = function(name){
 			}
 		}
 	}
+}
+
+// Call Open Trivia Database API to retrieve question data
+function getData(category){
+    return fetch("https://opentdb.com/api.php?amount=10&" + category)
+        .then(res => res.json());
 }

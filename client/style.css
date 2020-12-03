@@ -1,5 +1,6 @@
 #ctx{
     border: 2px solid black;
+    display: none;
 }
 
 #lobbyTable{
@@ -9,4 +10,28 @@
 #lobbyTable td, #lobbyTable th{
     text-align: center;
     border: 1px solid black;
+}
+
+#playerBox{
+    display: none;
+}
+
+#player1{
+    background-color: red;
+    text-align: center;
+}
+
+#player2{
+    background-color: yellow;
+    text-align: center;
+}
+
+#player3{
+    background-color: rgb(0, 68, 255);
+    text-align: center;
+}
+
+#player4{
+    background-color: rgb(175, 3, 175);
+    text-align: center;
 }

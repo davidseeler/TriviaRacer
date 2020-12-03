@@ -5,6 +5,12 @@ let $ = function(id){
 let socket = io();
 let ctx = $('ctx').getContext("2d");
 let name = "Player";
+let host = false;
+
+socket.on("playerInfo", function(data){
+    name = data;
+    $("nameInput").value = data;
+});
 
 socket.on('newPositions', function(data){
     ctx.font = '20px Arial';
@@ -18,12 +24,30 @@ socket.on('count', function(data){
     $("playerCount").innerHTML = data;
 });
 
+socket.on("fetchExistingLobbies", function(data){
+    let lobbies = data;
+    for (let lobby in lobbies){
+        createLobby(lobby, lobbies[lobby]['players'][0], 
+        lobbies[lobby]['players'].length, lobbies[lobby]['category']);    
+    }  
+});
+
 socket.on("broadcast", function(data){
     if (data.type == "createLobby"){
-        createLobby(data.lobbyID, data.name);
+        createLobby(data.lobbyID, data.name, data.size, data.category);
     }
     if (data.type == "updateLobbies"){
-        updateLobbies(data.lobbyID, data.size);
+        updateLobbyCount(data.lobbyID, data.size);
+    }
+    if (data.type == "changeCategory"){
+        updateLobbyCategory(data.lobbyID, data.category);
+    }
+    if (data.type == "deleteLobby"){
+        $("lobbyRow" + data.lobbyID).remove();
+        console.log(data.name);
+        if (name == data.name){
+            $("createLobbyButton").removeAttribute("disabled");
+        }
     }
 });
 
@@ -36,18 +60,31 @@ createLobbyMsg = function(){
     socket.emit("createLobby", name);
 }
 
-createLobby = function(lobbyID, userID){
+createLobby = function(lobbyID, nameFromServer, size, category){
     let table = $("lobbyTable");
-    let joinButton = "<button value='" + lobbyID + "' onclick='joinLobby(value)' id='joinButton'>Join</button>";
-    let categoryOptions = "<select>" + "<option value='General Knowledge'>General Knowledge</option>" +
+    let newLobby = document.createElement('tr');
+    newLobby.setAttribute("id", "lobbyRow" + lobbyID);
+    let joinButton = "<button value='" + lobbyID + "' onclick='joinLobby(value)' id='joinButton" + lobbyID + "'>Join</button>";
+    let categoryOptions = "<select id='category" + lobbyID + "' onchange='changeCategory(" + lobbyID + ")' value='" + category + "'>" + "<option value='General Knowledge'>General Knowledge</option>" +
     "<option value='Film'>Film</option>" + "<option value='Music'>Music</option>" + "<option value='Television'>Television</option>" +
     "<option value='Video Games'>Video Games</option>" + "<option value='Science & Nature'>Science & Nature</option>" + "<option value='Science: Computers'>Computers</option>" +
     "<option value='Science: Mathetmatics'>Mathematics</option>" + "<option value='Sports'>Sports</option>" + "<option value='Geography'>Geography</option>" +
     "<option value='History'>History</option>" + "<option value='Politics'>Politics</option>" + "<option value='Art'>Art</option>" +
     "<option value='Celebrities'>Celebrities</option>" + "<option value='Animals'>Animals</option>" + "<option value='Vehicles'>Vehicles</option>" + 
     "<option value='Anime & Manga'>Anime & Manga</option>" + "<option value='Cartoon & Animations'>Cartoon & Animations</option>" + "</select>";
-    table.innerHTML += "<tr><td><span>" + userID + "</span></td><td id='lobbyCount" + lobbyID + "'>1/5</td><td>" + 
-    "<label></label>" + categoryOptions + "</td><td>" + joinButton + "</td></tr>";
+    newLobby.innerHTML = "<td><span>" + nameFromServer + "</span></td><td id='lobbyCount" + lobbyID + "'>" + size + "/5</td><td>" + 
+    "<label></label>" + categoryOptions + "</td><td>" + joinButton + "</td>";
+    table.appendChild(newLobby);
+    $("category" + lobbyID).value = category;
+    if (nameFromServer != name){
+        $("category" + lobbyID).setAttribute("disabled", true);
+    }
+    else{
+        console.log("made it");
+        host = true;
+        $("createLobbyButton").setAttribute("disabled", true);
+        $("joinButton" + lobbyID).setAttribute("disabled", true);
+    }
 }
 
 joinLobby = function(value){
@@ -57,6 +94,17 @@ joinLobby = function(value){
     });
 };
 
-updateLobbies = function(lobbyID, size){
+updateLobbyCount = function(lobbyID, size){
     $("lobbyCount" + lobbyID).innerHTML = size + "/5";
+}
+
+updateLobbyCategory = function(lobbyID, category){
+    $("category" + lobbyID).value = category;
+}
+
+changeCategory = function(id){
+    socket.emit("changeCategory", {
+        lobbyID: id,
+        category: $("category" + id).value
+    });
 }

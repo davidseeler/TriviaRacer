@@ -50,6 +50,7 @@ io.sockets.on('connection', function(socket){
 
 	// On player creating a new lobby
 	socket.on("createLobby", function(data){
+		removeIfInLobby(data);
 		lobbies[lobbyCount] = {};
 		lobbies[lobbyCount]['players'] = [data];
 		lobbies[lobbyCount]['category'] = '9';
@@ -62,32 +63,38 @@ io.sockets.on('connection', function(socket){
 		});
 		hosts[data] = lobbyCount;
 		lobbyCount++;
+		console.log(lobbies);
 	});
 
 	// On player joining a lobby
 	socket.on("joinLobby", function(data){
+
+		// Check target lobby current capacity
 		sizeOfLobby = lobbies[data.lobbyID]['players'].length;
-		if (sizeOfLobby < 5){
-			let isHost = false;
-			if (checkIfHost(data.name)){
-				isHost = true;
-				broadcast({
-					type: "deleteLobby",
-					name: data.name,
-					lobbyID: hosts[data.name]
-				});
-				delete lobbies[hosts[data.name]];
-				delete hosts[data.name];
-			}
+		if (sizeOfLobby < 4){
+
+			// Check if host or already in another lobby
+			dissolveHostLobby(data.name);
 			removeIfInLobby(data.name);
+
+			// Add player to target lobby
 			lobbies[data.lobbyID]['players'][sizeOfLobby] = data.name;
 			sizeOfLobby++;
+
+			// Broadcast the hop to all other players
 			broadcast({
 				type: "updateLobbies",
 				lobbyID: data.lobbyID,
-				size: sizeOfLobby,
-				host: isHost
+				size: sizeOfLobby
 			});
+
+			// Lock the lobby if it is full
+			if (sizeOfLobby == 4){
+				broadcast({
+					type: "lobbyFull",
+					lobbyID: data.lobbyID
+				});
+			}
 		}
 		console.log(lobbies);
 	});
@@ -161,25 +168,31 @@ fetchExistingLobbies = function(socket){
 	socket.emit("fetchExistingLobbies", lobbies);
 }
 
-checkIfHost = function(name){
+// Check if player is a host, remove his/her lobby
+dissolveHostLobby = function(name){
 	if (hosts[name] != null){
-		return true;
+		broadcast({
+			type: "deleteLobby",
+			name: name,
+			lobbyID: hosts[name]
+		});
+		delete lobbies[hosts[name]];
+		delete hosts[name];	
 	}
-	return false;
 }
 
+// Check and remove if player is already in a lobby
 removeIfInLobby = function(name){
 	for (let lobby in lobbies){
 		if ((lobbies[lobby]['players']).includes(name)){
 			for (let i = 0; i < (lobbies[lobby]['players']).length; i++){
 				if ((lobbies[lobby]['players'][i]) == name){
-					delete lobbies[lobby]['players'][i];
-					lobbies[lobby]['players'].length -= 1;
+					lobbies[lobby]['players'] = decrementLobby(lobbies[lobby]['players'], i);
 					broadcast({
 						type: "playerHop",
 						lobbyID: lobby,
-						name: name,
-						size: lobbies[lobby]['players'].length
+						size: lobbies[lobby]['players'].length,
+						host: getHostOfLobby(lobby)
 					});
 				}
 			}
@@ -187,8 +200,42 @@ removeIfInLobby = function(name){
 	}
 }
 
+decrementLobby = function(lobby, indexToRemove){
+	if (lobby.length == 2){
+		lobby = [lobby[0]];
+	}
+	else if (lobby.length == 3){
+		if (indexToRemove == 1){
+			lobby = [lobby[0], lobby[2]];
+		}
+		if (indexToRemove == 2){
+			lobby = [lobby[0], lobby[1]];
+		}
+	}
+	else if (lobby.length == 4){
+		if (indexToRemove == 1){
+			lobby = [lobby[0], lobby[2], lobby[3]];
+		}
+		else if (indexToRemove == 2){
+			lobby = [lobby[0], lobby[1], lobby[3]];
+		}
+		else if (indexToRemove == 3){
+			lobby = [lobby[0], lobby[1], lobby[2]];
+		}
+	}
+	return lobby;
+}
+
 // Call Open Trivia Database API to retrieve question data
 function getData(category){
     return fetch("https://opentdb.com/api.php?amount=10&" + category)
         .then(res => res.json());
+}
+
+function getHostOfLobby(lobby){
+	for (let host in hosts){
+		if (hosts[host] == lobby){
+			return host;
+		}
+	}
 }

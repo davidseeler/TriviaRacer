@@ -12,6 +12,10 @@
     border: 1px solid black;
 }
 
+#backButton{
+    display: none;
+}
+
 #playerBox{
     display: none;
 }

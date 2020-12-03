@@ -5,7 +5,6 @@ let $ = function(id){
 let socket = io();
 let ctx = $('ctx').getContext("2d");
 let name = "Player";
-let host = false;
 
 socket.on("playerInfo", function(data){
     name = data;
@@ -28,7 +27,10 @@ socket.on("fetchExistingLobbies", function(data){
     let lobbies = data;
     for (let lobby in lobbies){
         createLobby(lobby, lobbies[lobby]['players'][0], 
-        lobbies[lobby]['players'].length, lobbies[lobby]['category']);    
+        lobbies[lobby]['players'].length, lobbies[lobby]['category']);
+        if (lobbies[lobby]['players'].length == 4){
+            lockLobby(lobby);
+        }    
     }  
 });
 
@@ -47,7 +49,10 @@ socket.on("broadcast", function(data){
         $("createLobbyButton").removeAttribute("disabled");
     }
     if (data.type == "playerHop"){
-        playerHop(data.lobbyID, data.name, data.size);
+        playerHop(data.lobbyID, data.size, data.host);
+    }
+    if (data.type == "lobbyFull"){
+        lockLobby(data.lobbyID);
     }
 });
 
@@ -72,7 +77,7 @@ createLobby = function(lobbyID, nameFromServer, size, category){
     "<option value='23'>History</option>" + "<option value='24'>Politics</option>" + "<option value='25'>Art</option>" +
     "<option value='26'>Celebrities</option>" + "<option value='27'>Animals</option>" + "<option value='28'>Vehicles</option>" + 
     "<option value='31'>Anime & Manga</option>" + "<option value='32'>Cartoon & Animations</option>" + "</select>";
-    newLobby.innerHTML = "<td><span>" + nameFromServer + "</span></td><td id='lobbyCount" + lobbyID + "'>" + size + "/5</td><td>" + 
+    newLobby.innerHTML = "<td><span>" + nameFromServer + "</span></td><td id='lobbyCount" + lobbyID + "' value='" + size + "'>" + size + "/4</td><td>" + 
     "<label></label>" + categoryOptions + "</td><td>" + joinButton + "</td>";
     table.appendChild(newLobby);
     $("category" + lobbyID).value = category;
@@ -80,7 +85,6 @@ createLobby = function(lobbyID, nameFromServer, size, category){
         $("category" + lobbyID).setAttribute("disabled", true);
     }
     else{
-        host = true;
         $("createLobbyButton").setAttribute("disabled", true);
         $("joinButton" + lobbyID).setAttribute("disabled", true);
         $("startButton").removeAttribute("disabled");
@@ -97,7 +101,8 @@ joinLobby = function(value){
 };
 
 updateLobbyCount = function(lobbyID, size){
-    $("lobbyCount" + lobbyID).innerHTML = size + "/5";
+    $("lobbyCount" + lobbyID).value = size;
+    $("lobbyCount" + lobbyID).innerHTML = size + "/4";
 }
 
 updateLobbyCategory = function(lobbyID, category){
@@ -111,9 +116,17 @@ changeCategory = function(id){
     });
 }
 
-playerHop = function(lobbyID, name, size){
-    $("lobbyCount" + lobbyID).innerHTML = size + "/5";
-    $("joinButton" + lobbyID).removeAttribute("disabled");
+playerHop = function(lobbyID, size, host){
+    $("lobbyCount" + lobbyID).innerHTML = size + "/4";
+    console.log("name: " + name + " host: " + host);
+    if (name != host){
+        console.log("made it");
+        $("joinButton" + lobbyID).removeAttribute("disabled");
+    }
+}
+
+lockLobby = function(lobbyID){
+    $("joinButton" + lobbyID).setAttribute("disabled", true);
 }
 
 startGame = function(){
@@ -129,11 +142,8 @@ startGame = function(){
         assignPlayers(data.party);
     });
 
-    // Load game page HTML
-    $("homePage").setAttribute("style", "display: none");
-    $("ctx").setAttribute("style", "display: block");
-    $("gamePage").setAttribute("style", "display: block");
-    $("playerBox").setAttribute("style", "display: block");
+    // Load Game Page HTML
+    loadGamePage();
 }
 
 assignPlayers = function(party){
@@ -143,8 +153,25 @@ assignPlayers = function(party){
     $("player4").innerHTML = party[3];
 }
 
-goBackHome = function(){
-    $("gamePage").setAttribute("style", "display: none");
+gamePageElements = ["gamePage", "ctx", "playerBox", "backButton"];
+homePageElements = ["homePage"];
+
+loadHomePage = function(){
+    // Hide Game Page Elements
+    for (let element in gamePageElements){
+        $(gamePageElements[element]).setAttribute("style", "display: none");
+    }
+
+    // Reveal Home Page Elements
     $("homePage").setAttribute("style", "display: block");
-    $("playerBox").setAttribute("style", "display: none");
+}
+
+loadGamePage = function(){
+    // Hide Home Page Elements
+    $("homePage").setAttribute("style", "display: none");
+
+    // Reveal Game Page Elements
+    for (let element in gamePageElements){
+        $(gamePageElements[element]).setAttribute("style", "display: block");
+    }
 }

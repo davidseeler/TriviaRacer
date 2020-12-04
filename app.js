@@ -10,16 +10,17 @@ app.get('/',function(req, res) {
 });
 app.use('/client',express.static(__dirname + '/client'));
  
+// Start listening for connections
 serv.listen(process.env.PORT || 2000);
 console.log("Server started.");
 
 // Global variables
 let SOCKET_LIST = {};
-let connCount = 0;
-let lobbyCount = 0;
+let activeGames = {};
 let lobbies = {};
 let hosts = {};
-let activeGames = {};
+let lobbyCount = 0;
+let connCount = 0;
 let io = require('socket.io')(serv,{});
 
 // On new connection, instantiate player
@@ -136,17 +137,24 @@ io.sockets.on('connection', function(socket){
 		// Delete lobby and move players to active game session
 		activeGames[lobbyID] = {};
 		activeGames[lobbyID]['players'] = party;
+		activeGames[lobbyID]['sockets'] = getPartySockets(party);
 		activeGames[lobbyID]['ready'] = [];
 		readyUpEmpties(lobbyID);
 		dissolveHostLobby(data); 
-
+		console.log(activeGames);
 	});
 
 	socket.on("readyUp", function(data){
 		let gameID = getGameID(data);
 		activeGames[gameID]['ready'].push(data);
+		partyMessage({
+			type: "playerReady",
+			player: activeGames[gameID]['players'].indexOf(data)
+		}, gameID);
 		if (activeGames[gameID]['ready'].length == 4){
-			socket.emit("playGame", activeGames[gameID]);
+			partyMessage({
+				type: "playGame"
+			}, gameID);
 		}
 	});
 });
@@ -172,7 +180,16 @@ setInterval(function(){
 broadcast = function(msg){
 	for(let i in SOCKET_LIST){
 		let socket = SOCKET_LIST[i];
-		socket.emit('broadcast', msg);
+		socket.emit("broadcast", msg);
+	}
+}
+
+// Message to be sent to players in specified party
+partyMessage = function(msg, gameID){
+	for(let socket in activeGames[gameID]['sockets']){
+		if (activeGames[gameID]['sockets'][socket] != "Empty"){
+			activeGames[gameID]['sockets'][socket].emit("partyMessage", msg);
+		}
 	}
 }
 
@@ -276,4 +293,22 @@ function readyUpEmpties(gameID){
 			activeGames[gameID]['ready'].push("Empty");
 		}
 	}
+}
+
+function getPartySockets(party){
+	let sockets = [];
+	for (let player in party){
+		if (party[player] == "Empty"){
+			sockets.push("Empty");
+		}
+		else{
+			for(let i in SOCKET_LIST){
+				let socket = SOCKET_LIST[i];
+				if (socket.number == party[player]){
+					sockets.push(socket);
+				}
+			}
+		}
+	}
+	return sockets;
 }

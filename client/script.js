@@ -1,16 +1,14 @@
-let $ = function(id){
-    return document.getElementById(id);
-}
-
 let socket = io();
-let ctx = $('ctx').getContext("2d");
 let name = "Player";
 let playerNum = "";
+let party = "";
+let ctx = $("#ctx").get(0).getContext("2d");
 
 socket.on("playerInfo", function(data){
     name = data;
-    $("nameInput").value = data;
+    $("#nameInput").val(data);
 });
+
 
 socket.on('newPositions', function(data){
     ctx.font = '20px Arial';
@@ -20,8 +18,9 @@ socket.on('newPositions', function(data){
     }
 });
 
+
 socket.on('count', function(data){
-    $("playerCount").innerHTML = data;
+    $("#playerCount").html(data);
 });
 
 socket.on("fetchExistingLobbies", function(data){
@@ -35,10 +34,6 @@ socket.on("fetchExistingLobbies", function(data){
     }  
 });
 
-socket.on("playGame", function(data){
-    startTimer();
-});
-
 socket.on("broadcast", function(data){
     if (data.type == "createLobby"){
         createLobby(data.lobbyID, data.name, data.size, data.category);
@@ -50,8 +45,8 @@ socket.on("broadcast", function(data){
         updateLobbyCategory(data.lobbyID, data.category);
     }
     if (data.type == "deleteLobby"){
-        $("lobbyRow" + data.lobbyID).remove();
-        $("createLobbyButton").removeAttribute("disabled");
+        $("#lobbyRow" + data.lobbyID).remove();
+        $("#createLobbyButton").removeAttr("disabled");
     }
     if (data.type == "playerHop"){
         playerHop(data.lobbyID, data.size, data.host);
@@ -66,8 +61,17 @@ socket.on("broadcast", function(data){
     }
 });
 
+socket.on("partyMessage", function(data){
+    if (data.type == "playerReady"){
+        playerReadyUp(data.player);
+    }
+    if (data.type == "playGame"){
+        startTimer();
+    }
+});
+
 sendName = function(){
-    name = $("nameInput").value;
+    name = $("#nameInput").val();
     socket.emit("updateName", name);
 }
 
@@ -76,9 +80,7 @@ createLobbyMsg = function(){
 }
 
 createLobby = function(lobbyID, nameFromServer, size, category){
-    let table = $("lobbyTable");
-    let newLobby = document.createElement('tr');
-    newLobby.setAttribute("id", "lobbyRow" + lobbyID);
+    let table = $("#lobbyTable");
     let joinButton = "<button value='" + lobbyID + "' onclick='joinLobby(value)' id='joinButton" + lobbyID + "'>Join</button>";
     let categoryOptions = "<select id='category" + lobbyID + "' onchange='changeCategory(" + lobbyID + ")'>" + "<option value='9' selected>General Knowledge</option>" +
     "<option value='11'>Film</option>" + "<option value='12'>Music</option>" + "<option value='14'>Television</option>" +
@@ -87,17 +89,17 @@ createLobby = function(lobbyID, nameFromServer, size, category){
     "<option value='23'>History</option>" + "<option value='24'>Politics</option>" + "<option value='25'>Art</option>" +
     "<option value='26'>Celebrities</option>" + "<option value='27'>Animals</option>" + "<option value='28'>Vehicles</option>" + 
     "<option value='31'>Anime & Manga</option>" + "<option value='32'>Cartoon & Animations</option>" + "</select>";
-    newLobby.innerHTML = "<td><span>" + nameFromServer + "</span></td><td id='lobbyCount" + lobbyID + "' value='" + size + "'>" + size + "/4</td><td>" + 
-    "<label></label>" + categoryOptions + "</td><td>" + joinButton + "</td>";
-    table.appendChild(newLobby);
-    $("category" + lobbyID).value = category;
+    let newLobby = $("<tr id=('lobbyRow'" + lobbyID +")><td><span>" + nameFromServer + "</span></td><td id='lobbyCount" + lobbyID + "' value='" + size + "'>" + size + "/4</td><td>" + 
+    "<label></label>" + categoryOptions + "</td><td>" + joinButton + "</td></tr>");
+    table.append(newLobby);
+    $("#category" + lobbyID).val(category);
     if (nameFromServer != name){
-        $("category" + lobbyID).setAttribute("disabled", true);
+        $("#category" + lobbyID).attr("disabled", true);
     }
     else{
-        $("createLobbyButton").setAttribute("disabled", true);
-        $("joinButton" + lobbyID).setAttribute("disabled", true);
-        $("startButton").removeAttribute("disabled");
+        $("#createLobbyButton").attr("disabled", true);
+        $("#joinButton" + lobbyID).attr("disabled", true);
+        $("#startButton").removeAttr("disabled");
     }
 }
 
@@ -106,37 +108,37 @@ joinLobby = function(value){
         lobbyID: value,
         name: name
     });
-    $("joinButton" + value).setAttribute("disabled", true);
-    $("startButton").setAttribute("disabled", true);
+    $("#joinButton" + value).attr("disabled", true);
+    $("#startButton").attr("disabled", true);
 };
 
 updateLobbyCount = function(lobbyID, size){
-    $("lobbyCount" + lobbyID).value = size;
-    $("lobbyCount" + lobbyID).innerHTML = size + "/4";
+    $("#lobbyCount" + lobbyID).val(size);
+    $("#lobbyCount" + lobbyID).html(size + "/4");
 }
 
 updateLobbyCategory = function(lobbyID, category){
-    $("category" + lobbyID).value = category;
+    $("#category" + lobbyID).val(category);
 }
 
 changeCategory = function(id){
     socket.emit("changeCategory", {
         lobbyID: id,
-        category: $("category" + id).value
+        category: $("#category" + id).val()
     });
 }
 
 playerHop = function(lobbyID, size, host){
-    $("lobbyCount" + lobbyID).innerHTML = size + "/4";
+    $("#lobbyCount" + lobbyID).html(size + "/4");
     console.log("name: " + name + " host: " + host);
     if (name != host){
         console.log("made it");
-        $("joinButton" + lobbyID).removeAttribute("disabled");
+        $("#joinButton" + lobbyID).removeAttr("disabled");
     }
 }
 
 lockLobby = function(lobbyID){
-    $("joinButton" + lobbyID).setAttribute("disabled", true);
+    $("#joinButton" + lobbyID).attr("disabled", true);
 }
 
 startGameMsg = function(){
@@ -144,11 +146,12 @@ startGameMsg = function(){
 }
 
 startGame = function(data){
+    party = data.party;
     let temp = "";
     for (let result in data.questions['results']){
         temp += data.questions['results'][result]['question'] + "\n\n";
     }
-    $("question").innerHTML = temp;
+    $("#question").html(temp);
     assignPlayers(data.party);
 
     // Load Game Page HTML
@@ -156,30 +159,30 @@ startGame = function(data){
 }
 
 assignPlayers = function(party){
-    $("player1").innerHTML = "<div>" + party[0] + "<input type='checkbox' id='p1ReadyUp' onclick='readyUp()' disabled></div>";
-    $("player2").innerHTML = "<div>" + party[1] + "<input type='checkbox' id='p2ReadyUp' onclick='readyUp()' disabled></div>";
-    $("player3").innerHTML = "<div>" + party[2] + "<input type='checkbox' id='p3ReadyUp' onclick='readyUp()' disabled></div>";
-    $("player4").innerHTML = "<div>" + party[3] + "<input type='checkbox' id='p4ReadyUp' onclick='readyUp()' disabled></div>";
+    $("#player1").html("<div>" + party[0] + "<input type='checkbox' id='p1ReadyUp' onclick='readyUp()' disabled></div>");
+    $("#player2").html("<div>" + party[1] + "<input type='checkbox' id='p2ReadyUp' onclick='readyUp()' disabled></div>");
+    $("#player3").html("<div>" + party[2] + "<input type='checkbox' id='p3ReadyUp' onclick='readyUp()' disabled></div>");
+    $("#player4").html("<div>" + party[3] + "<input type='checkbox' id='p4ReadyUp' onclick='readyUp()' disabled></div>");
 
     // Assign ready up permissions
     switch(name){
         case party[0]: 
-            $("p1ReadyUp").removeAttribute("disabled");
+            $("#p1ReadyUp").removeAttr("disabled");
             break;
         case party[1]:
-            $("p2ReadyUp").removeAttribute("disabled");
+            $("#p2ReadyUp").removeAttr("disabled");
             break;
         case party[2]:
-            $("p3ReadyUp").removeAttribute("disabled");
+            $("#p3ReadyUp").removeAttr("disabled");
             break;
         case party[3]:
-            $("p4ReadyUp").removeAttribute("disabled");
+            $("#p4ReadyUp").removeAttr("disabled");
     }
 
     // Ready up empty players
     for (let i = 0; i < 4; i++){
         if (party[i] == "Empty"){
-            $("p" + (i + 1) + "ReadyUp").setAttribute("checked", true);
+            $("#p" + (i + 1) + "ReadyUp").attr("checked", true);
         }
     }
 }
@@ -188,38 +191,43 @@ readyUp = function(){
     socket.emit("readyUp", name);
 }
 
+playerReadyUp = function(playerNumber){
+    $("#p" + (playerNumber + 1) + "ReadyUp").attr("checked", true);
+    $("#p" + (playerNumber + 1) + "ReadyUp").attr("disabled", true);
+}
+
 gamePageElements = ["gamePage", "ctx", "playerBox", "backButton"];
 homePageElements = ["homePage"];
 
 loadHomePage = function(){
     // Hide Game Page Elements
     for (let element in gamePageElements){
-        $(gamePageElements[element]).setAttribute("style", "display: none");
+        $("#" + gamePageElements[element]).attr("style", "display: none");
     }
 
     // Reveal Home Page Elements
-    $("homePage").setAttribute("style", "display: block");
+    $("#homePage").attr("style", "display: block");
 }
 
 loadGamePage = function(){
     // Hide Home Page Elements
-    $("homePage").setAttribute("style", "display: none");
+    $("#homePage").attr("style", "display: none");
 
     // Reveal Game Page Elements
     for (let element in gamePageElements){
-        $(gamePageElements[element]).setAttribute("style", "display: block");
+        $("#" + gamePageElements[element]).attr("style", "display: block");
     }
 }
 
 startTimer = function(){
-    $("countdowntimer").setAttribute("style", "display: block");
+    $("#countdowntimer").attr("style", "display: block");
     let timeleft = 4;
     let downloadTimer = setInterval(function(){
         timeleft--;
-        document.getElementById("countdowntimer").textContent = timeleft;
+        $("#countdowntimer").html(timeleft);
         if(timeleft <= 0){
             clearInterval(downloadTimer);
-            $("countdowntimer").setAttribute("style", "display: none");
+            $("#countdowntimer").attr("style", "display: none");
         }
     },1000);
 };

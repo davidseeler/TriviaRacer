@@ -14,7 +14,7 @@ socket.on("playerInfo", function(data){
 socket.on('newPositions', function(data){
     ctx.font = '20px Arial';
     ctx.clearRect(0, 0, 500, 500);
-    for (var i = 0; i < data.length; i++){
+    for (let i = 0; i < data.length; i++){
         ctx.fillText(data[i].number, data[i].x, data[i].y + (i * 30));
     }
 });

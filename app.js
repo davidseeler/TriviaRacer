@@ -21,7 +21,7 @@ let lobbies = {};
 let hosts = {};
 let activeGames = {};
 let categoryDict = {};
-var io = require('socket.io')(serv,{});
+let io = require('socket.io')(serv,{});
 
 // On new connection, instantiate player
 io.sockets.on('connection', function(socket){
@@ -135,32 +135,32 @@ io.sockets.on('connection', function(socket){
  
 // 40 FPS execution
 setInterval(function(){
-	var pack = [];
-	for(var i in SOCKET_LIST){
-		var socket = SOCKET_LIST[i];
+	let pack = [];
+	for(let i in SOCKET_LIST){
+		let socket = SOCKET_LIST[i];
 		pack.push({
 			x:socket.x,
 			y:socket.y,
 			number:socket.number
 		});		
 	}
-	for(var i in SOCKET_LIST){
-		var socket = SOCKET_LIST[i];
+	for(let i in SOCKET_LIST){
+		let socket = SOCKET_LIST[i];
 		socket.emit('newPositions', pack);
 	}
 },1000/25);
 
 // Message to be sent to all clients
 broadcast = function(msg){
-	for(var i in SOCKET_LIST){
-		var socket = SOCKET_LIST[i];
+	for(let i in SOCKET_LIST){
+		let socket = SOCKET_LIST[i];
 		socket.emit('broadcast', msg);
 	}
 }
 
 updateConnCount = function(){
-	for(var i in SOCKET_LIST){
-		var socket = SOCKET_LIST[i];
+	for(let i in SOCKET_LIST){
+		let socket = SOCKET_LIST[i];
 		socket.emit('count', connCount);
 	}
 }
@@ -229,7 +229,7 @@ decrementLobby = function(lobby, indexToRemove){
 
 // Call Open Trivia Database API to retrieve question data
 function getData(category){
-    return fetch("https://opentdb.com/api.php?amount=10&" + category)
+    return fetch("https://opentdb.com/api.php?amount=10&" + category + "&difficulty=easy")
         .then(res => res.json());
 }
 

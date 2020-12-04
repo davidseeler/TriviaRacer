@@ -1,9 +1,10 @@
-// Server setup
+// Setup
 const express = require('express');
 const app = express();
 const serv = require('http').Server(app);
 const fetch = require('node-fetch');
  
+// HTTP request handler
 app.get('/',function(req, res) {
 	res.sendFile(__dirname + '/client/index.html');
 });
@@ -11,7 +12,6 @@ app.use('/client',express.static(__dirname + '/client'));
  
 serv.listen(process.env.PORT || 2000);
 console.log("Server started.");
- 
 
 // Global variables
 let SOCKET_LIST = {};
@@ -20,7 +20,6 @@ let lobbyCount = 0;
 let lobbies = {};
 let hosts = {};
 let activeGames = {};
-let categoryDict = {};
 let io = require('socket.io')(serv,{});
 
 // On new connection, instantiate player
@@ -34,6 +33,7 @@ io.sockets.on('connection', function(socket){
 	updateConnCount();
 	fetchExistingLobbies(socket);
 
+	// Inform client of their information
 	socket.emit("playerInfo", socket.number);
 
 	// On disconnnection
@@ -165,6 +165,7 @@ updateConnCount = function(){
 	}
 }
 
+// Update users who just connected
 fetchExistingLobbies = function(socket){
 	socket.emit("fetchExistingLobbies", lobbies);
 }
@@ -201,6 +202,7 @@ removeIfInLobby = function(name){
 	}
 }
 
+// Adjust lobby array for the decrement
 decrementLobby = function(lobby, indexToRemove){
 	if (lobby.length == 2){
 		lobby = [lobby[0]];
@@ -233,6 +235,7 @@ function getData(category){
         .then(res => res.json());
 }
 
+// Return host of specificed lobby
 function getHostOfLobby(lobby){
 	for (let host in hosts){
 		if (hosts[host] == lobby){

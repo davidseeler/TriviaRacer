@@ -120,6 +120,8 @@ io.sockets.on('connection', function(socket){
 				party[i] = lobbies[lobbyID]['players'][i];
 			}
 		}
+
+		// Retrieve JSON from API and send to clients
 		let category = "category=" + lobbies[lobbyID]['category'];
 		let triviaQuestions = getData(category);
 		triviaQuestions.then(function(result){
@@ -130,6 +132,22 @@ io.sockets.on('connection', function(socket){
 				questions: result
 			});
 		});
+
+		// Delete lobby and move players to active game session
+		activeGames[lobbyID] = {};
+		activeGames[lobbyID]['players'] = party;
+		activeGames[lobbyID]['ready'] = [];
+		readyUpEmpties(lobbyID);
+		dissolveHostLobby(data); 
+
+	});
+
+	socket.on("readyUp", function(data){
+		let gameID = getGameID(data);
+		activeGames[gameID]['ready'].push(data);
+		if (activeGames[gameID]['ready'].length == 4){
+			socket.emit("playGame", activeGames[gameID]);
+		}
 	});
 });
  
@@ -240,6 +258,22 @@ function getHostOfLobby(lobby){
 	for (let host in hosts){
 		if (hosts[host] == lobby){
 			return host;
+		}
+	}
+}
+
+function getGameID(name){
+	for (let game in activeGames){
+		if (activeGames[game]['players'].includes(name)){
+			return game;
+		}
+	}
+}
+
+function readyUpEmpties(gameID){
+	for (let i = 0; i < 4; i++){
+		if (activeGames[gameID]['players'][i] == "Empty"){
+			activeGames[gameID]['ready'].push("Empty");
 		}
 	}
 }

@@ -5,6 +5,7 @@ let $ = function(id){
 let socket = io();
 let ctx = $('ctx').getContext("2d");
 let name = "Player";
+let playerNum = "";
 
 socket.on("playerInfo", function(data){
     name = data;
@@ -32,6 +33,10 @@ socket.on("fetchExistingLobbies", function(data){
             lockLobby(lobby);
         }    
     }  
+});
+
+socket.on("playGame", function(data){
+    startTimer();
 });
 
 socket.on("broadcast", function(data){
@@ -151,10 +156,36 @@ startGame = function(data){
 }
 
 assignPlayers = function(party){
-    $("player1").innerHTML = party[0];
-    $("player2").innerHTML = party[1];
-    $("player3").innerHTML = party[2];
-    $("player4").innerHTML = party[3];
+    $("player1").innerHTML = "<div>" + party[0] + "<input type='checkbox' id='p1ReadyUp' onclick='readyUp()' disabled></div>";
+    $("player2").innerHTML = "<div>" + party[1] + "<input type='checkbox' id='p2ReadyUp' onclick='readyUp()' disabled></div>";
+    $("player3").innerHTML = "<div>" + party[2] + "<input type='checkbox' id='p3ReadyUp' onclick='readyUp()' disabled></div>";
+    $("player4").innerHTML = "<div>" + party[3] + "<input type='checkbox' id='p4ReadyUp' onclick='readyUp()' disabled></div>";
+
+    // Assign ready up permissions
+    switch(name){
+        case party[0]: 
+            $("p1ReadyUp").removeAttribute("disabled");
+            break;
+        case party[1]:
+            $("p2ReadyUp").removeAttribute("disabled");
+            break;
+        case party[2]:
+            $("p3ReadyUp").removeAttribute("disabled");
+            break;
+        case party[3]:
+            $("p4ReadyUp").removeAttribute("disabled");
+    }
+
+    // Ready up empty players
+    for (let i = 0; i < 4; i++){
+        if (party[i] == "Empty"){
+            $("p" + (i + 1) + "ReadyUp").setAttribute("checked", true);
+        }
+    }
+}
+
+readyUp = function(){
+    socket.emit("readyUp", name);
 }
 
 gamePageElements = ["gamePage", "ctx", "playerBox", "backButton"];
@@ -179,3 +210,16 @@ loadGamePage = function(){
         $(gamePageElements[element]).setAttribute("style", "display: block");
     }
 }
+
+startTimer = function(){
+    $("countdowntimer").setAttribute("style", "display: block");
+    let timeleft = 4;
+    let downloadTimer = setInterval(function(){
+        timeleft--;
+        document.getElementById("countdowntimer").textContent = timeleft;
+        if(timeleft <= 0){
+            clearInterval(downloadTimer);
+            $("countdowntimer").setAttribute("style", "display: none");
+        }
+    },1000);
+};

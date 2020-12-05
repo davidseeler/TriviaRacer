@@ -67,10 +67,11 @@ socket.on("partyMessage", function(data){
     }
     if (data.type == "playGame"){
         $("#readyUpWindow").attr("style", "display: none");
-        startTimer();
+        startTimer(4);
     }
     if (data.type == "fetchQuestionsRes"){
         fetchQuestions(data);
+        setAnswerChoices(data);
     }
 });
 
@@ -222,9 +223,9 @@ loadGamePage = function(){
     }
 }
 
-startTimer = function(){
+startTimer = function(time){
     $("#countdowntimer").attr("style", "display: block");
-    let timeleft = 4;
+    let timeleft = time;
     let downloadTimer = setInterval(function(){
         timeleft--;
         $("#countdowntimer").html(timeleft);
@@ -235,3 +236,13 @@ startTimer = function(){
         }
     },1000);
 };
+
+setAnswerChoices = function(data){
+    console.log(data);
+    document.getElementById("answer" + 0).innerHTML = data['question']['correct_answer'];
+    for (let i = 0; i < 3; i++){
+        document.getElementById("answer" + (i + 1)).innerHTML = data['question']["incorrect_answers"][i];
+    }
+    startTimer(11);
+};                   
+

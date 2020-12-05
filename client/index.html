@@ -5,6 +5,14 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=yes">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
         <link rel="stylesheet" href="client/style.css">
+        <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;1,300&display=swap"
+      rel="stylesheet"
+    />
         <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.3/socket.io.js"></script>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     </head>
@@ -13,23 +21,30 @@
             <div id="homePage">
                 <div class="row">
                     <h1 id="title">TRIVIA RACER</h1>
-                    <p>Players Online: <span id="playerCount">0</span></p>
                 </div>
                 <div class="row">
-                    <label>Choose your nickname: </label>
-                    <input type="text" id="nameInput">
-                    <button id="nameButton" onclick="sendName()">Confirm</button>
+                    <p id="playersOnline">Players Online: <span id="playerCount">0</span></p>
                 </div>
                 <div class="row">
-                    <button onclick="createLobbyMsg()" id="createLobbyButton">Create New Lobby</button>
-                    <button onclick="startGameMsg()" id="startButton" disabled>Start Game</button>
+                    <div id="chooseName">
+                        <label>Choose your nickname</label><br>
+                        <input type="text" id="nameInput">
+                        <button id="nameButton" onclick="sendName()">Confirm</button>
+                    </div>
                 </div>
-                <div class="row">
+                <div class="row" id="lobbyTableRow">
+                    <span id="lobbyTableTitle">Create or join a lobby to play</span>
                     <table id="lobbyTable">
                         <tr>
                             <th>Host</th><th>Capacity</th><th>Category</th><th></th>
                         </tr>
                     </table>
+                </div>
+                <div class="row">
+                    <div id="homeButtons">
+                        <button onclick="createLobbyMsg()" id="createLobbyButton">Create New Lobby</button>
+                        <button onclick="startGameMsg()" id="startButton" disabled>Start Game</button>
+                    </div>
                 </div>
             </div>
             <div id="gamePage">
@@ -39,9 +54,6 @@
                 </div>
                 <div class="row">
                     <canvas id="ctx"></canvas>
-                </div>
-                <div class="row">
-                    <p id="question"></p>
                 </div>
                 <div class="row">
                     <div id="readyUpWindow">Are you ready?
@@ -54,19 +66,22 @@
                 <div class="row">
                     <div id="answerBox">
                         <div class="row no-gutters">
+                            <p id="question"></p>
+                        </div>
+                        <div class="row no-gutters">
                             <div class="col">
-                                <button id="answerA">A</button>
+                                <button id="answer0">A</button>
                             </div>
                             <div class="col">
-                                <button id="answerB">B</button>
+                                <button id="answer1">B</button>
                             </div>
                         </div>
                         <div class="row no-gutters">
                             <div class="col">
-                                <button id="answerC">C</button>
+                                <button id="answer2">C</button>
                             </div>
                             <div class="col">
-                                <button id="answerD">D</button>
+                                <button id="answer3">D</button>
                             </div>
                         </div>
                     </div>

@@ -135,7 +135,7 @@ io.sockets.on('connection', function(socket){
 		let wait = getData(category, lobbyID);
 		wait.then(function(result){
 			activeGames[lobbyID]['questions'] = result;
-			console.log(activeGames);
+			console.log(activeGames[lobbyID]['questions']);
 			broadcast({
 				type: "startGame",
 				lobbyID: hosts[data],

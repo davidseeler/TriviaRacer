@@ -9,7 +9,7 @@
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     </head>
     <body>
-        <div class="container">
+        <div class="container-fluid">
             <div id="homePage">
                 <div class="row">
                     <h1 id="title">TRIVIA RACER</h1>
@@ -44,17 +44,29 @@
                     <p id="question"></p>
                 </div>
                 <div class="row">
-                    <div id="playerBox">
-                        <div class="row">
-                            <div class="col" id="player1">                                
+                    <div id="readyUpWindow">Are you ready?
+                        <span id="player1"></span>
+                        <span id="player2"></span>
+                        <span id="player3"></span>
+                        <span id="player4"></span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div id="answerBox">
+                        <div class="row no-gutters">
+                            <div class="col">
+                                <button id="answerA">A</button>
                             </div>
-                            <div class="col" id="player2">
+                            <div class="col">
+                                <button id="answerB">B</button>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col" id="player3">
+                        <div class="row no-gutters">
+                            <div class="col">
+                                <button id="answerC">C</button>
                             </div>
-                            <div class="col" id="player4">
+                            <div class="col">
+                                <button id="answerD">D</button>
                             </div>
                         </div>
                     </div>

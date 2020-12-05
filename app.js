@@ -64,7 +64,7 @@ io.sockets.on('connection', function(socket){
 		});
 		hosts[data] = lobbyCount;
 		lobbyCount++;
-		console.log(lobbies);
+		//console.log(lobbies);
 	});
 
 	// On player joining a lobby
@@ -97,7 +97,7 @@ io.sockets.on('connection', function(socket){
 				});
 			}
 		}
-		console.log(lobbies);
+		//console.log(lobbies);
 	});
 
 	// On host changing category of lobby
@@ -122,26 +122,30 @@ io.sockets.on('connection', function(socket){
 			}
 		}
 
+		// Move players to active game session
+		activeGames[lobbyID] = {};
+		activeGames[lobbyID]['players'] = party;
+		activeGames[lobbyID]['sockets'] = getPlayerSockets(party);
+		activeGames[lobbyID]['ready'] = [];
+		activeGames[lobbyID]['round'] = 0;
+		activeGames[lobbyID]['questions'] = {};
+
 		// Retrieve JSON from API and send to clients
 		let category = "category=" + lobbies[lobbyID]['category'];
-		let triviaQuestions = getData(category);
-		triviaQuestions.then(function(result){
+		let wait = getData(category, lobbyID);
+		wait.then(function(result){
+			activeGames[lobbyID]['questions'] = result;
+			console.log(activeGames);
 			broadcast({
 				type: "startGame",
 				lobbyID: hosts[data],
 				party: party,
-				questions: result
 			});
 		});
 
-		// Delete lobby and move players to active game session
-		activeGames[lobbyID] = {};
-		activeGames[lobbyID]['players'] = party;
-		activeGames[lobbyID]['sockets'] = getPartySockets(party);
-		activeGames[lobbyID]['ready'] = [];
+		// Delete lobby
 		readyUpEmpties(lobbyID);
 		dissolveHostLobby(data); 
-		console.log(activeGames);
 	});
 
 	socket.on("readyUp", function(data){
@@ -156,6 +160,16 @@ io.sockets.on('connection', function(socket){
 				type: "playGame"
 			}, gameID);
 		}
+	});
+
+	socket.on("fetchQuestions", function(data){
+		let gameID = getGameID(data);
+		let round = activeGames[gameID]['round'];
+		partyMessage({
+			type: "fetchQuestionsRes",
+			question: activeGames[gameID]['questions']['results'][round]
+		}, gameID);
+		activeGames[gameID]['round']++;
 	});
 });
  
@@ -266,8 +280,8 @@ decrementLobby = function(lobby, indexToRemove){
 
 // Call Open Trivia Database API to retrieve question data
 function getData(category){
-    return fetch("https://opentdb.com/api.php?amount=10&" + category + "&difficulty=easy")
-        .then(res => res.json());
+    return fetch("https://opentdb.com/api.php?amount=10&" + category + "&difficulty=easy&type=multiple")
+		.then(res => res.json());
 }
 
 // Return host of specificed lobby
@@ -295,7 +309,7 @@ function readyUpEmpties(gameID){
 	}
 }
 
-function getPartySockets(party){
+function getPlayerSockets(party){
 	let sockets = [];
 	for (let player in party){
 		if (party[player] == "Empty"){

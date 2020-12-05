@@ -66,7 +66,11 @@ socket.on("partyMessage", function(data){
         playerReadyUp(data.player);
     }
     if (data.type == "playGame"){
+        $("#readyUpWindow").attr("style", "display: none");
         startTimer();
+    }
+    if (data.type == "fetchQuestionsRes"){
+        fetchQuestions(data);
     }
 });
 
@@ -89,7 +93,7 @@ createLobby = function(lobbyID, nameFromServer, size, category){
     "<option value='23'>History</option>" + "<option value='24'>Politics</option>" + "<option value='25'>Art</option>" +
     "<option value='26'>Celebrities</option>" + "<option value='27'>Animals</option>" + "<option value='28'>Vehicles</option>" + 
     "<option value='31'>Anime & Manga</option>" + "<option value='32'>Cartoon & Animations</option>" + "</select>";
-    let newLobby = $("<tr id=('lobbyRow'" + lobbyID +")><td><span>" + nameFromServer + "</span></td><td id='lobbyCount" + lobbyID + "' value='" + size + "'>" + size + "/4</td><td>" + 
+    let newLobby = $("<tr id='lobbyRow" + lobbyID + "'><td><span>" + nameFromServer + "</span></td><td id='lobbyCount" + lobbyID + "' value='" + size + "'>" + size + "/4</td><td>" + 
     "<label></label>" + categoryOptions + "</td><td>" + joinButton + "</td></tr>");
     table.append(newLobby);
     $("#category" + lobbyID).val(category);
@@ -132,7 +136,6 @@ playerHop = function(lobbyID, size, host){
     $("#lobbyCount" + lobbyID).html(size + "/4");
     console.log("name: " + name + " host: " + host);
     if (name != host){
-        console.log("made it");
         $("#joinButton" + lobbyID).removeAttr("disabled");
     }
 }
@@ -147,15 +150,15 @@ startGameMsg = function(){
 
 startGame = function(data){
     party = data.party;
-    let temp = "";
-    for (let result in data.questions['results']){
-        temp += data.questions['results'][result]['question'] + "\n\n";
-    }
-    $("#question").html(temp);
     assignPlayers(data.party);
 
     // Load Game Page HTML
     loadGamePage();
+}
+
+fetchQuestions = function(data){
+    console.log(data.question);
+    $("#question").html(data.question['question']);
 }
 
 assignPlayers = function(party){
@@ -196,7 +199,7 @@ playerReadyUp = function(playerNumber){
     $("#p" + (playerNumber + 1) + "ReadyUp").attr("disabled", true);
 }
 
-gamePageElements = ["gamePage", "ctx", "playerBox", "backButton"];
+gamePageElements = ["gamePage", "ctx", "readyUpWindow", "backButton", "answerBox"];
 homePageElements = ["homePage"];
 
 loadHomePage = function(){
@@ -228,6 +231,7 @@ startTimer = function(){
         if(timeleft <= 0){
             clearInterval(downloadTimer);
             $("#countdowntimer").attr("style", "display: none");
+            socket.emit("fetchQuestions", name);
         }
     },1000);
 };

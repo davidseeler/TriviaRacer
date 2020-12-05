@@ -1,3 +1,7 @@
+html{
+    overflow: hidden !important;
+}
+
 #ctx{
     border: 2px solid black;
     display: none;
@@ -21,7 +25,7 @@
 #readyUpWindow{
     display: none;
     position: fixed;
-    width: 30%;
+    width: max(30%, 180px);
     height: 25%;
     top: 40%;
     left: 50%;

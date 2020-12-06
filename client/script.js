@@ -239,10 +239,13 @@ startTimer = function(time){
 
 setAnswerChoices = function(data){
     console.log(data);
-    document.getElementById("answer" + 0).innerHTML = data['question']['correct_answer'];
-    for (let i = 0; i < 3; i++){
-        document.getElementById("answer" + (i + 1)).innerHTML = data['question']["incorrect_answers"][i];
+    for (let i = 0; i < 4; i++){
+        document.getElementById("answer" + i).innerHTML = data['question']["shuffledAnswers"][i];
     }
     startTimer(11);
-};                   
+};                
+
+answerMsg = function(value){
+    socket.emit("answer", [name, value]);
+}
 

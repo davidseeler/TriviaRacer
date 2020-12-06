@@ -129,13 +129,13 @@ io.sockets.on('connection', function(socket){
 		activeGames[lobbyID]['ready'] = [];
 		activeGames[lobbyID]['round'] = 0;
 		activeGames[lobbyID]['questions'] = {};
+		activeGames[lobbyID]['score'] = [0, 0, 0, 0];
 
 		// Retrieve JSON from API and send to clients
 		let category = "category=" + lobbies[lobbyID]['category'];
 		let wait = getData(category, lobbyID);
 		wait.then(function(result){
 			activeGames[lobbyID]['questions'] = result;
-			console.log(activeGames[lobbyID]['questions']);
 			broadcast({
 				type: "startGame",
 				lobbyID: hosts[data],
@@ -165,11 +165,29 @@ io.sockets.on('connection', function(socket){
 	socket.on("fetchQuestions", function(data){
 		let gameID = getGameID(data);
 		let round = activeGames[gameID]['round'];
+		let answers = shuffleAnswers(activeGames[gameID]['questions']['results'][round]);
+		activeGames[gameID]['questions']['results'][round]["shuffledAnswers"] = answers;
+		
 		partyMessage({
 			type: "fetchQuestionsRes",
 			question: activeGames[gameID]['questions']['results'][round]
 		}, gameID);
-		activeGames[gameID]['round']++;
+		//activeGames[gameID]['round']++;
+	});
+
+	socket.on("answer", function(data){	
+		let gameID = getGameID(data[0]);
+		let round = activeGames[gameID]['round'];
+		let correctAnswer = activeGames[gameID]['questions']['results'][round]['correct_answer'];
+		let response = activeGames[gameID]['questions']['results'][round]['shuffledAnswers'][data[1]];
+
+		if (response == correctAnswer){
+			console.log("correct");
+			activeGames[gameID]['round']++;
+		}
+		else{
+			console.log("incorrect");
+		}
 	});
 });
  
@@ -325,4 +343,17 @@ function getPlayerSockets(party){
 		}
 	}
 	return sockets;
+}
+
+// Shuffle answer choices
+shuffleAnswers = function(questions){
+	let arr = questions['incorrect_answers'];
+	arr[3] = questions['correct_answer'];
+	for (let i = arr.length - 1; i > 0; i--) {
+        let j = Math.floor(Math.random() * (i + 1));
+        let temp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = temp;
+    }
+	return arr;
 }

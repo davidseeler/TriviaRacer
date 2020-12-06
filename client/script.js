@@ -2,6 +2,7 @@ let socket = io();
 let name = "Player";
 let playerNum = "";
 let party = "";
+let timeRemaining = 0;
 let ctx = $("#ctx").get(0).getContext("2d");
 
 socket.on("playerInfo", function(data){
@@ -65,20 +66,19 @@ socket.on("partyMessage", function(data){
     if (data.type == "playerReady"){
         playerReadyUp(data.player);
     }
-    if (data.type == "playGame"){
+    if (data.type == "setGameStage"){
         $("#readyUpWindow").attr("style", "display: none");
-        socket.emit("fetchQuestions", name);
-        
+        socket.emit("playGame", name);
     }
-    if (data.type == "preparationConfirmation"){
-        console.log(data.clock);
-        startTimer(data.clock);
-        socket.emit("preparationConfirmation", name);
+    if (data.type == "clientConfirmation"){
+        socket.emit("playerReady", name);
     }
-    if (data.type == "fetchQuestionsRes"){
-        fetchQuestions(data);
-        setAnswerChoices(data);
-        
+    if (data.type == "displayQuestion"){
+        if (data.time == 3 ? startCountDown(data) : displayQuestion(data));
+    }
+
+    if (data.type == "movePlayers"){
+        movePlayers(data);
     }
 });
 
@@ -163,10 +163,6 @@ startGame = function(data){
     loadGamePage();
 }
 
-fetchQuestions = function(data){
-    $("#question").html(data.question['question']);
-}
-
 assignPlayers = function(party){
     $("#player1").html("<div>" + party[0] + "<input type='checkbox' id='p1ReadyUp' onclick='readyUp()' disabled></div>");
     $("#player2").html("<div>" + party[1] + "<input type='checkbox' id='p2ReadyUp' onclick='readyUp()' disabled></div>");
@@ -228,24 +224,30 @@ loadGamePage = function(){
     }
 }
 
+startCountDown = function(data){
+    $("#countdowntimer").attr("style", "display: block");
+    let downloadTimer = setInterval(function(){
+        $("#countdowntimer").html(data.time);
+        data.time--;
+        if(data.time <= -1){
+            clearInterval(downloadTimer);
+            $("#countdowntimer").attr("style", "display: none");
+            displayQuestion(data);
+        }
+    },1000);
+}
 
 startTimer = function(time){
-    console.log(time);
-    let clock = "";
-    if (time == 4){
-        clock = $("#countdowntimer");
-    }
-    else{
-        clock = $("#stopwatch");
-    }
-    clock.attr("style", "display: block");
-    let timeleft = time;
+    $("#stopwatch").attr("style", "display: block");
     let downloadTimer = setInterval(function(){
-        timeleft--;
-        clock.html(timeleft);
-        if(timeleft <= 0){
+        console.log(time);
+        $("#stopwatch").html(time);
+        time--;
+        if(time <= -2){
             clearInterval(downloadTimer);
-            clock.attr("style", "display: none");
+            $("#stopwatch").attr("style", "display: none");
+            socket.emit("checkAnswers", name);
+            $("#stopwatch").html(10);
         }
     },1000);
     
@@ -261,3 +263,20 @@ answerMsg = function(value){
     socket.emit("answer", [name, value]);
 }
 
+displayQuestion = function(data){
+    $("#questiion").attr("style", "display: block");
+    $("#question").html(data.question['question']);
+    setAnswerChoices(data);
+    startTimer(10);
+}
+
+movePlayers = function(data){
+    console.log(data.score);
+    // set time out?
+    $("question").attr("style", "dispay: none");
+    console.log("wait 5 seconds to ready up");
+    setTimeout(function(){
+        socket.emit("playerReady");
+        console.log("ready up");
+    }, 5000, name);
+}

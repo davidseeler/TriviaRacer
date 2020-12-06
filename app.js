@@ -159,24 +159,49 @@ io.sockets.on('connection', function(socket){
 		}, gameID);
 		if (activeGames[gameID]['ready'].length == 4){
 			partyMessage({
-				type: "playGame"
+				type: "setGameStage"
 			}, gameID);
 		}
 	});
 
-	socket.on("fetchQuestions", function(data){
-		// First question
-		sendQuestion(data, 4);
+	socket.on("playGame", function(data){
+		let gameID = getGameID(data);
+		let round = activeGames[gameID]['round'];
+		let clock = 0;
 
-		// Send the following 9 questions every 10 seconds
-		const interval = setInterval(function(){
-			activeGames[getGameID(data)]['round']++;
-			sendQuestion(data, 11);
-			if (activeGames[getGameID(data)]['round'] == 9){
-				clearInterval(interval);
-			}
-		}, 10000);	
+		resetReadyPlayers(gameID);
 		
+		partyMessage({
+			type: "clientConfirmation"
+		}, gameID);
+
+		socket.on("playerReady", function(data){
+			activeGames[gameID]['ready'].push(data);
+			if (round != 9){
+				if (activeGames[gameID]['ready'].length == 4){
+					if (round == 0 ? clock = 3 : clock = 10);
+					partyMessage({
+						type: "displayQuestion",
+						question: activeGames[gameID]['questions']['results'][round],
+						time: clock
+					}, gameID);
+					activeGames[gameID]['round']++;
+					round = activeGames[gameID]['round'];
+					resetReadyPlayers(gameID);
+				}
+			}
+			else{
+				// game end
+			}
+			
+			socket.on("checkAnswers", function(data){
+				console.log("checking answers...");
+				partyMessage({
+					type: "movePlayers",
+					score: activeGames[gameID]['score']
+				}, gameID);
+			});
+		});
 	});
 
 	socket.on("answer", function(data){	
@@ -194,15 +219,6 @@ io.sockets.on('connection', function(socket){
 		}
 	});
 
-	// Send question on client confirmation
-	socket.on("preparationConfirmation", function(data){
-		gameID = getGameID(data);
-		let round = activeGames[gameID]['round'];
-		partyMessage({
-			type: "fetchQuestionsRes",
-			question: activeGames[gameID]['questions']['results'][round]
-		}, gameID);
-	});
 });
  
 // 40 FPS execution
@@ -374,14 +390,9 @@ shuffleAnswers = function(gameID){
 	}
 }
 
-sendQuestion = function(data, time){
-	let gameID = getGameID(data);
 
-	// Check if client is ready
-	partyMessage({
-		type: "preparationConfirmation",
-		clock: time
-	}, gameID);
-
-	// Socket listens for confirmation (code above)
+resetReadyPlayers = function(gameID){
+	delete activeGames[gameID]['ready'];
+	activeGames[gameID]['ready'] = [];
+	readyUpEmpties(gameID);
 }

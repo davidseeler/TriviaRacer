@@ -67,7 +67,9 @@ socket.on("partyMessage", function(data){
     }
     if (data.type == "playGame"){
         $("#readyUpWindow").attr("style", "display: none");
-        startTimer(4);
+        //startTimer(4);
+        socket.emit("fetchQuestions", name);
+        
     }
     if (data.type == "fetchQuestionsRes"){
         fetchQuestions(data);
@@ -135,7 +137,6 @@ changeCategory = function(id){
 
 playerHop = function(lobbyID, size, host){
     $("#lobbyCount" + lobbyID).html(size + "/4");
-    console.log("name: " + name + " host: " + host);
     if (name != host){
         $("#joinButton" + lobbyID).removeAttr("disabled");
     }
@@ -158,7 +159,7 @@ startGame = function(data){
 }
 
 fetchQuestions = function(data){
-    console.log(data.question);
+    console.log("x");
     $("#question").html(data.question['question']);
 }
 
@@ -223,7 +224,9 @@ loadGamePage = function(){
     }
 }
 
+/*
 startTimer = function(time){
+    
     $("#countdowntimer").attr("style", "display: block");
     let timeleft = time;
     let downloadTimer = setInterval(function(){
@@ -232,17 +235,17 @@ startTimer = function(time){
         if(timeleft <= 0){
             clearInterval(downloadTimer);
             $("#countdowntimer").attr("style", "display: none");
-            socket.emit("fetchQuestions", name);
         }
     },1000);
+    
 };
+*/
 
 setAnswerChoices = function(data){
-    console.log(data);
     for (let i = 0; i < 4; i++){
         document.getElementById("answer" + i).innerHTML = data['question']["shuffledAnswers"][i];
     }
-    startTimer(11);
+    //startTimer(11);
 };                
 
 answerMsg = function(value){

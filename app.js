@@ -141,6 +141,7 @@ io.sockets.on('connection', function(socket){
 				lobbyID: hosts[data],
 				party: party,
 			});
+			shuffleAnswers(lobbyID);
 		});
 
 		// Delete lobby
@@ -163,16 +164,18 @@ io.sockets.on('connection', function(socket){
 	});
 
 	socket.on("fetchQuestions", function(data){
-		let gameID = getGameID(data);
-		let round = activeGames[gameID]['round'];
-		let answers = shuffleAnswers(activeGames[gameID]['questions']['results'][round]);
-		activeGames[gameID]['questions']['results'][round]["shuffledAnswers"] = answers;
+		// First question
+		sendQuestion(data);
+
+		// Send the following 9 questions every 10 seconds
+		const interval = setInterval(function(){
+			activeGames[getGameID(data)]['round']++;
+			sendQuestion(data);
+			if (activeGames[getGameID(data)]['round'] == 9){
+				clearInterval(interval);
+			}
+		}, 3000);	
 		
-		partyMessage({
-			type: "fetchQuestionsRes",
-			question: activeGames[gameID]['questions']['results'][round]
-		}, gameID);
-		//activeGames[gameID]['round']++;
 	});
 
 	socket.on("answer", function(data){	
@@ -345,15 +348,28 @@ function getPlayerSockets(party){
 	return sockets;
 }
 
-// Shuffle answer choices
-shuffleAnswers = function(questions){
-	let arr = questions['incorrect_answers'];
-	arr[3] = questions['correct_answer'];
-	for (let i = arr.length - 1; i > 0; i--) {
-        let j = Math.floor(Math.random() * (i + 1));
-        let temp = arr[i];
-        arr[i] = arr[j];
-        arr[j] = temp;
-    }
-	return arr;
+// Shuffle answer choices for all questions
+shuffleAnswers = function(gameID){
+	for (let question in activeGames[gameID]['questions']['results']){
+		let arr = activeGames[gameID]['questions']['results'][question]['incorrect_answers'];
+		arr[3] = activeGames[gameID]['questions']['results'][question]['correct_answer'];
+		for (let i = arr.length - 1; i > 0; i--) {
+			let j = Math.floor(Math.random() * (i + 1));
+			let temp = arr[i];
+			arr[i] = arr[j];
+			arr[j] = temp;
+		}
+		activeGames[gameID]['questions']['results'][question]['shuffledAnswers'] = arr;
+	}
+}
+
+sendQuestion = function(data){
+	let gameID = getGameID(data);
+	let round = activeGames[gameID]['round'];
+	console.log(round);	
+	console.log(activeGames[gameID]['questions']['results'][round]);
+	partyMessage({
+		type: "fetchQuestionsRes",
+		question: activeGames[gameID]['questions']['results'][round],
+	}, gameID);
 }

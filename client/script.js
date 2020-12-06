@@ -67,13 +67,18 @@ socket.on("partyMessage", function(data){
     }
     if (data.type == "playGame"){
         $("#readyUpWindow").attr("style", "display: none");
-        //startTimer(4);
         socket.emit("fetchQuestions", name);
         
+    }
+    if (data.type == "preparationConfirmation"){
+        console.log(data.clock);
+        startTimer(data.clock);
+        socket.emit("preparationConfirmation", name);
     }
     if (data.type == "fetchQuestionsRes"){
         fetchQuestions(data);
         setAnswerChoices(data);
+        
     }
 });
 
@@ -159,7 +164,6 @@ startGame = function(data){
 }
 
 fetchQuestions = function(data){
-    console.log("x");
     $("#question").html(data.question['question']);
 }
 
@@ -224,28 +228,33 @@ loadGamePage = function(){
     }
 }
 
-/*
+
 startTimer = function(time){
-    
-    $("#countdowntimer").attr("style", "display: block");
+    console.log(time);
+    let clock = "";
+    if (time == 4){
+        clock = $("#countdowntimer");
+    }
+    else{
+        clock = $("#stopwatch");
+    }
+    clock.attr("style", "display: block");
     let timeleft = time;
     let downloadTimer = setInterval(function(){
         timeleft--;
-        $("#countdowntimer").html(timeleft);
+        clock.html(timeleft);
         if(timeleft <= 0){
             clearInterval(downloadTimer);
-            $("#countdowntimer").attr("style", "display: none");
+            clock.attr("style", "display: none");
         }
     },1000);
     
 };
-*/
 
 setAnswerChoices = function(data){
     for (let i = 0; i < 4; i++){
         document.getElementById("answer" + i).innerHTML = data['question']["shuffledAnswers"][i];
     }
-    //startTimer(11);
 };                
 
 answerMsg = function(value){

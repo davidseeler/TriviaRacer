@@ -1,5 +1,6 @@
 // Setup
 const express = require('express');
+const { get } = require('http');
 const app = express();
 const serv = require('http').Server(app);
 const fetch = require('node-fetch');
@@ -165,16 +166,16 @@ io.sockets.on('connection', function(socket){
 
 	socket.on("fetchQuestions", function(data){
 		// First question
-		sendQuestion(data);
+		sendQuestion(data, 4);
 
 		// Send the following 9 questions every 10 seconds
 		const interval = setInterval(function(){
 			activeGames[getGameID(data)]['round']++;
-			sendQuestion(data);
+			sendQuestion(data, 11);
 			if (activeGames[getGameID(data)]['round'] == 9){
 				clearInterval(interval);
 			}
-		}, 3000);	
+		}, 10000);	
 		
 	});
 
@@ -191,6 +192,16 @@ io.sockets.on('connection', function(socket){
 		else{
 			console.log("incorrect");
 		}
+	});
+
+	// Send question on client confirmation
+	socket.on("preparationConfirmation", function(data){
+		gameID = getGameID(data);
+		let round = activeGames[gameID]['round'];
+		partyMessage({
+			type: "fetchQuestionsRes",
+			question: activeGames[gameID]['questions']['results'][round]
+		}, gameID);
 	});
 });
  
@@ -363,13 +374,14 @@ shuffleAnswers = function(gameID){
 	}
 }
 
-sendQuestion = function(data){
+sendQuestion = function(data, time){
 	let gameID = getGameID(data);
-	let round = activeGames[gameID]['round'];
-	console.log(round);	
-	console.log(activeGames[gameID]['questions']['results'][round]);
+
+	// Check if client is ready
 	partyMessage({
-		type: "fetchQuestionsRes",
-		question: activeGames[gameID]['questions']['results'][round],
+		type: "preparationConfirmation",
+		clock: time
 	}, gameID);
+
+	// Socket listens for confirmation (code above)
 }

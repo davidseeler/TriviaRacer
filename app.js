@@ -130,7 +130,8 @@ io.sockets.on('connection', function(socket){
 		activeGames[lobbyID]['ready'] = [];
 		activeGames[lobbyID]['round'] = 0;
 		activeGames[lobbyID]['questions'] = {};
-		activeGames[lobbyID]['score'] = [0, 0, 0, 0];
+		activeGames[lobbyID]['score'] = [];
+		createScoreArrays(lobbyID);
 
 		// Retrieve JSON from API and send to clients
 		let category = "category=" + lobbies[lobbyID]['category'];
@@ -167,16 +168,23 @@ io.sockets.on('connection', function(socket){
 	socket.on("playGame", function(data){
 		let gameID = getGameID(data);
 		let round = activeGames[gameID]['round'];
-		let clock = 0;
 
 		resetReadyPlayers(gameID);
 		
-		partyMessage({
-			type: "clientConfirmation"
-		}, gameID);
+		if (data == activeGames[gameID]['players'][0]){
+			partyMessage({
+				type: "clientConfirmation"
+			}, gameID);
+		}
+	});
 
-		socket.on("playerReady", function(data){
-			activeGames[gameID]['ready'].push(data);
+	socket.on("playerReady", function(data){
+		let gameID = getGameID(data);
+		let round = activeGames[gameID]['round'];
+		let clock = 0;
+		activeGames[gameID]['ready'].push(data);
+		// Last person to ready up sends the update to control overflow
+		if (data == activeGames[gameID]['ready'][3]){
 			if (round != 9){
 				if (activeGames[gameID]['ready'].length == 4){
 					if (round == 0 ? clock = 3 : clock = 10);
@@ -185,25 +193,15 @@ io.sockets.on('connection', function(socket){
 						question: activeGames[gameID]['questions']['results'][round],
 						time: clock
 					}, gameID);
-					activeGames[gameID]['round']++;
-					round = activeGames[gameID]['round'];
 					resetReadyPlayers(gameID);
 				}
 			}
 			else{
-				// game end
+				// game end	
 			}
-			
-			socket.on("checkAnswers", function(data){
-				console.log("checking answers...");
-				partyMessage({
-					type: "movePlayers",
-					score: activeGames[gameID]['score']
-				}, gameID);
-			});
-		});
+		}
 	});
-
+			
 	socket.on("answer", function(data){	
 		let gameID = getGameID(data[0]);
 		let round = activeGames[gameID]['round'];
@@ -212,11 +210,24 @@ io.sockets.on('connection', function(socket){
 
 		if (response == correctAnswer){
 			console.log("correct");
-			activeGames[gameID]['round']++;
+			activeGames[gameID]['score'][getPlayerScoreIndex(data[0])][1]++;
 		}
 		else{
 			console.log("incorrect");
 		}
+	});
+
+	socket.on("checkAnswers", function(data){
+		let gameID = getGameID(data);
+		let round = activeGames[gameID]['round'];
+		console.log("checking answers...");
+		if (data == activeGames[gameID]['players'][0]){
+			partyMessage({
+				type: "movePlayers",
+				score: activeGames[gameID]['score']
+			}, gameID);
+		}
+		activeGames[gameID]['round']++;
 	});
 
 });
@@ -390,9 +401,27 @@ shuffleAnswers = function(gameID){
 	}
 }
 
-
 resetReadyPlayers = function(gameID){
 	delete activeGames[gameID]['ready'];
 	activeGames[gameID]['ready'] = [];
 	readyUpEmpties(gameID);
+}
+
+checkAnswers = function(data){
+	console.log("checking answers...");
+}
+
+createScoreArrays = function(gameID){
+	for (let i = 0; i < 4; i++){
+		activeGames[gameID]['score'][i] = [activeGames[gameID]['players'][i], 0];
+	}
+}
+
+getPlayerScoreIndex = function(player){
+	let gameID = getGameID(player);
+	for (let i = 0; i < 4; i++){
+		if (player == activeGames[gameID]['score'][i][0]){
+			return i;
+		}
+	}
 }

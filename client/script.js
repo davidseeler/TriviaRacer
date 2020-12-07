@@ -75,8 +75,8 @@ socket.on("partyMessage", function(data){
     }
     if (data.type == "displayQuestion"){
         if (data.time == 3 ? startCountDown(data) : displayQuestion(data));
+        lockAnswers(false);
     }
-
     if (data.type == "movePlayers"){
         movePlayers(data);
     }
@@ -246,8 +246,9 @@ startTimer = function(time){
         if(time <= -2){
             clearInterval(downloadTimer);
             $("#stopwatch").attr("style", "display: none");
-            socket.emit("checkAnswers", name);
             $("#stopwatch").html(10);
+            lockAnswers(true);
+            socket.emit("checkAnswers", name);
         }
     },1000);
     
@@ -261,6 +262,7 @@ setAnswerChoices = function(data){
 
 answerMsg = function(value){
     socket.emit("answer", [name, value]);
+    lockAnswers(true);
 }
 
 displayQuestion = function(data){
@@ -276,7 +278,20 @@ movePlayers = function(data){
     $("question").attr("style", "dispay: none");
     console.log("wait 5 seconds to ready up");
     setTimeout(function(){
-        socket.emit("playerReady");
+        socket.emit("playerReady", name);
         console.log("ready up");
-    }, 5000, name);
+    }, 5000, name);   
+}
+
+lockAnswers = function(bool){
+    if (bool){
+        for (let i = 0; i < 4; i++){
+            $("#answer" + i).attr("disabled", true);
+        }
+    }
+    else{
+        for (let i = 0; i < 4; i++){
+            $("#answer" + i).removeAttr("disabled");
+        }
+    }
 }

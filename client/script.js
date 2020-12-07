@@ -255,23 +255,31 @@ answerMsg = function(value){
 }
 
 displayQuestion = function(data){
-    $(".car").attr("style",  "filter: blur(4px)");
-    $("#questiion").attr("style", "display: block");
+    $("#carList").attr("style",  "filter: blur(4px)");
+    $("#question").attr("style", "display: block");
     $("#question").html(data.question['question']);
     setAnswerChoices(data);
     startTimer(10);
 }
 
 movePlayers = function(data){
-    $("question").attr("style", "dispay: none");
-    $(".car").attr("style",  "filter: blur(0)");
+    $("#question").attr("style", "dispay: none");
+    $("#carList").attr("style",  "filter: blur(0)");
     console.log(data.score);
     // set time out?
     console.log("wait 5 seconds to ready up");
     setTimeout(function(){
+        for (let i = 0; i < 4; i++){
+            $("#car" + i).animate({
+                marginBottom: "" + (50 * data.score[i][1]) + "px"
+            });
+        }
+    }, 1000);
+
+    setTimeout(function(){
         socket.emit("playerReady", name);
         console.log("ready up");
-    }, 5000, name);   
+    }, 2000, name);   
 }
 
 lockAnswers = function(bool){
@@ -285,4 +293,12 @@ lockAnswers = function(bool){
             $("#answer" + i).removeAttr("disabled");
         }
     }
+}
+
+function moveCars(){
+    $(".cars").animate({
+        opacity: 1,
+        transform: "translateY(-30%)",
+        transition: "opacity 0.2s ease-out, transform 0.7s"
+    });
 }

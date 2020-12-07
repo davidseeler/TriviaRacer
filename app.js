@@ -231,23 +231,6 @@ io.sockets.on('connection', function(socket){
 	});
 
 });
- 
-// 40 FPS execution
-setInterval(function(){
-	let pack = [];
-	for(let i in SOCKET_LIST){
-		let socket = SOCKET_LIST[i];
-		pack.push({
-			x:socket.x,
-			y:socket.y,
-			number:socket.number
-		});		
-	}
-	for(let i in SOCKET_LIST){
-		let socket = SOCKET_LIST[i];
-		socket.emit('newPositions', pack);
-	}
-},1000/25);
 
 // Message to be sent to all clients
 broadcast = function(msg){
@@ -339,7 +322,7 @@ decrementLobby = function(lobby, indexToRemove){
 
 // Call Open Trivia Database API to retrieve question data
 function getData(category){
-    return fetch("https://opentdb.com/api.php?amount=10&" + category + "&difficulty=easy&type=multiple")
+    return fetch("https://opentdb.com/api.php?amount=10&" + category + "&type=multiple")
 		.then(res => res.json());
 }
 

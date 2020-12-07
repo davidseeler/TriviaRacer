@@ -3,22 +3,11 @@ let name = "Player";
 let playerNum = "";
 let party = "";
 let timeRemaining = 0;
-let ctx = $("#ctx").get(0).getContext("2d");
 
 socket.on("playerInfo", function(data){
     name = data;
     $("#nameInput").val(data);
 });
-
-
-socket.on('newPositions', function(data){
-    ctx.font = '20px Arial';
-    ctx.clearRect(0, 0, 500, 500);
-    for (let i = 0; i < data.length; i++){
-        ctx.fillText(data[i].number, data[i].x, data[i].y + (i * 30));
-    }
-});
-
 
 socket.on('count', function(data){
     $("#playerCount").html(data);
@@ -101,8 +90,8 @@ createLobby = function(lobbyID, nameFromServer, size, category){
     "<option value='23'>History</option>" + "<option value='24'>Politics</option>" + "<option value='25'>Art</option>" +
     "<option value='26'>Celebrities</option>" + "<option value='27'>Animals</option>" + "<option value='28'>Vehicles</option>" + 
     "<option value='31'>Anime & Manga</option>" + "<option value='32'>Cartoon & Animations</option>" + "</select>";
-    let newLobby = $("<tr id='lobbyRow" + lobbyID + "'><td><span>" + nameFromServer + "</span></td><td id='lobbyCount" + lobbyID + "' value='" + size + "'>" + size + "/4</td><td>" + 
-    "<label></label>" + categoryOptions + "</td><td>" + joinButton + "</td></tr>");
+    let newLobby = $("<tr id='lobbyRow" + lobbyID + "'><td><span>" + nameFromServer + "</span></td><td id='lobbyCount" + lobbyID + "' value='" + size + "'>" + size + "/4</td><td id='categorySelect'>" + 
+    "" + categoryOptions + "</td><td>" + joinButton + "</td></tr>");
     table.append(newLobby);
     $("#category" + lobbyID).val(category);
     if (nameFromServer != name){
@@ -201,7 +190,7 @@ playerReadyUp = function(playerNumber){
     $("#p" + (playerNumber + 1) + "ReadyUp").attr("disabled", true);
 }
 
-gamePageElements = ["gamePage", "ctx", "readyUpWindow", "backButton", "answerBox"];
+gamePageElements = ["gamePage", "ctx", "readyUpWindow", "backButton", "answerBox", "racetrack"];
 homePageElements = ["homePage"];
 
 loadHomePage = function(){
@@ -266,6 +255,7 @@ answerMsg = function(value){
 }
 
 displayQuestion = function(data){
+    $(".car").attr("style",  "filter: blur(4px)");
     $("#questiion").attr("style", "display: block");
     $("#question").html(data.question['question']);
     setAnswerChoices(data);
@@ -273,9 +263,10 @@ displayQuestion = function(data){
 }
 
 movePlayers = function(data){
+    $("question").attr("style", "dispay: none");
+    $(".car").attr("style",  "filter: blur(0)");
     console.log(data.score);
     // set time out?
-    $("question").attr("style", "dispay: none");
     console.log("wait 5 seconds to ready up");
     setTimeout(function(){
         socket.emit("playerReady", name);

@@ -34,7 +34,7 @@
                 </div>
                 <div class="row" id="lobbyTableRow">
                     <span id="lobbyTableTitle">Create or join a lobby to play</span>
-                    <table id="lobbyTable">
+                    <table id="lobbyTable" class="table-striped">
                         <tr>
                             <th>Host</th><th>Capacity</th><th>Category</th><th></th>
                         </tr>
@@ -52,8 +52,13 @@
                     <button id="backButton" onclick="loadHomePage()">Back</button>
                     <span id='countdowntimer'>Game Starting</span>
                 </div>
-                <div class="row">
-                    <canvas id="ctx"></canvas>
+                <div id="racetrack" class="col no-gutters">
+                    <ul id="carList">
+                        <li><img src="client/images/redCar.png" class="car"></li>
+                        <li><img src="client/images/blueCar.png" class="car"></li>
+                        <li><img src="client/images/yellowCar.png" class="car"></li>
+                        <li><img src="client/images/greenCar.png" class="car"></li>
+                    </ul>
                 </div>
                 <div class="row">
                     <div id="readyUpWindow">Are you ready?

@@ -26,6 +26,7 @@ html{
 #lobbyTable td, #lobbyTable th{
     text-align: center;
     border: 1px solid black;
+    word-break: break-all;
 }
 
 #backButton{
@@ -126,31 +127,44 @@ th{
     font-weight: normal;
 }
 
- 
- #car0 {
-     -webkit-filter: hue-rotate(250deg); filter: hue-rotate(250deg);
-     animation: moving 3s ease 15s infinite;
- }
- 
- #car1 {
-     -webkit-filter: hue-rotate(18deg); filter: hue-rotate(180deg);
-     animation: moving 6s ease-in 9s infinite;
-     
- }
- 
- #car2 {
-     -webkit-filter: hue-rotate(180deg); filter: hue-rotate(70deg);
-     animation: moving 6.4s linear 12s infinite;
- }
- 
- #car4 {
-     top: 90px;
-     animation: moving 1s ease-out 1s infinite;
- }
- 
-.car{
-    width: 100px;
-    height: 50px;
+select{
+    width: 90%;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+#categorySelect{
+    padding: 0;
+    margin: 0;
+    width: 40%;
+}
+
+#carList{
+    list-style: none;
+    border: 2px solid black;
+    height: 100%;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    
+}
+
+#carList li{
+    float: left;
+    width: 25%;
+    height: 100%;
+    border: 2px solid black;
+    background-color: whitesmoke;
+    display: flex;
+    justify-content: flex-end;
+    flex-direction: column;
+}
+
+#carList li img{
+    margin-left: auto;
+    margin-right: auto;
+    width: 60px;
+    height: 90px;
 }
 
 #chooseName{
@@ -180,4 +194,9 @@ th{
     font-size: 25px;
     margin-left: auto;
     margin-right: auto;
+}
+
+#racetrack{
+    display: none;
+    height: 73%;
 }

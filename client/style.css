@@ -2,6 +2,123 @@ html{
     overflow: hidden !important;
 }
 
+#backgroundCars{
+   
+}
+
+.backgroundCar {
+    position: absolute;
+    top: 0;
+    left: -50%;
+    display:block; 
+    width: 10%;
+    height: auto;
+ }
+ 
+ #backgroundCar0 {
+     z-index: -1;
+     top: 8%;
+     -webkit-filter: hue-rotate(250deg); filter: hue-rotate(250deg);
+     animation: moving 5s ease 15s infinite;
+     
+ }
+ 
+ #backgroundCar1 {
+    z-index: -1;
+     top: 16%;
+     -webkit-filter: hue-rotate(18deg); filter: hue-rotate(180deg);
+     animation: moving 6s ease-in 9s infinite;
+     
+ }
+ 
+ #backgroundCar2 {
+    z-index: -1;
+     top: 24%;
+     -webkit-filter: hue-rotate(180deg); filter: hue-rotate(70deg);
+     animation: moving 6.4s linear 12s infinite;
+ }
+ 
+ #backgroundCar3 {
+    z-index: -1;
+     top: 32%;
+     animation: moving 8s ease-out 10s infinite;
+ }
+ 
+ #backgroundCar4 {
+    z-index: -1;
+     top: 40%;
+     -webkit-filter: hue-rotate(200deg); filter: hue-rotate(200deg);
+     animation: moving 4.6s ease 5s infinite;
+ }
+ 
+ #backgroundCar5 {
+    z-index: -1;
+     top: 48%;
+     -webkit-filter: hue-rotate(300deg); filter: hue-rotate(300deg);
+     animation: moving 4s ease-in 10s infinite;
+ }
+ 
+ 
+ #backgroundCar6 {
+    z-index: -1;
+     top: 56%;
+     -webkit-filter: hue-rotate(120deg); filter: hue-rotate(120deg);
+     animation: moving 6s ease-out 9s infinite;
+     
+ }
+ 
+ #backgroundCar7 {
+    z-index: -1;
+     top: 64%;
+     -webkit-filter: hue-rotate(250deg); filter: hue-rotate(250deg);
+     animation: moving 3.5s ease 10s infinite;
+     
+ }
+ 
+ #backgroundCar8 {
+    z-index: -1;
+     top: 72%;
+     -webkit-filter: hue-rotate(180deg); filter: hue-rotate(180deg);
+     animation: moving 3s ease-in 6s infinite;
+     
+ }
+ 
+ #backgroundCar9 {
+    z-index: -1;
+     top: 80%;
+     -webkit-filter: hue-rotate(70deg); filter: hue-rotate(70deg);
+     animation: moving 9s linear 11s infinite;
+ }
+ 
+ #backgroundCar10 {
+    z-index: -1;
+     top: 88%;
+     animation: moving 15s ease-out 0s infinite;
+ }
+ 
+ #backgroundCar11 {
+    z-index: -1;
+     top: 96%;
+     -webkit-filter: hue-rotate(200deg); filter: hue-rotate(200deg);
+     animation: moving 10.5s ease 10s infinite;
+ }
+ 
+ #backgroundCar12 {
+    z-index: -1;
+     top: 104%;
+     -webkit-filter: hue-rotate(300deg); filter: hue-rotate(300deg);
+     animation: moving 10s ease-in 6s infinite;
+ }
+
+ @keyframes moving {
+    from {
+       left: -20% 
+    } 
+    to {
+       left: 110%; 
+    }
+ }
+
 #title, #playersOnline{
     margin-left: auto;
     margin-right: auto;
@@ -10,13 +127,6 @@ html{
 #playersOnline{
     margin-top: -8px;
     margin-bottom: 20px;
-}
-
-#ctx{
-    border: 2px solid black;
-    display: none;
-    margin-left: auto;
-    margin-right: auto;
 }
 
 #lobbyTable{
@@ -212,3 +322,14 @@ select{
     display: none;
     height: 73%;
 }
+
+.highlight {
+    color: rgb(10, 247, 10);
+    font-size: 30px;
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+	-webkit-text-stroke-width: 1px;
+    -webkit-text-stroke-color: black;
+  }

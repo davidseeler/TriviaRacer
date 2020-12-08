@@ -214,6 +214,7 @@ loadGamePage = function(){
 }
 
 startCountDown = function(data){
+    $("#carList").attr("style",  "filter: blur(4px)");
     $("#countdowntimer").attr("style", "display: block");
     let downloadTimer = setInterval(function(){
         $("#countdowntimer").html(data.time);
@@ -229,7 +230,6 @@ startCountDown = function(data){
 startTimer = function(time){
     $("#stopwatch").attr("style", "display: block");
     let downloadTimer = setInterval(function(){
-        console.log(time);
         $("#stopwatch").html(time);
         time--;
         if(time <= -2){
@@ -265,9 +265,8 @@ displayQuestion = function(data){
 movePlayers = function(data){
     $("#question").attr("style", "dispay: none");
     $("#carList").attr("style",  "filter: blur(0)");
-    console.log(data.score);
-    // set time out?
-    console.log("wait 5 seconds to ready up");
+
+    let answerIndex = revealAnswer(data.correct);
     setTimeout(function(){
         for (let i = 0; i < 4; i++){
             $("#car" + i).animate({
@@ -278,7 +277,7 @@ movePlayers = function(data){
 
     setTimeout(function(){
         socket.emit("playerReady", name);
-        console.log("ready up");
+        $("#answer" + answerIndex).removeClass("highlight");
     }, 2000, name);   
 }
 
@@ -295,10 +294,11 @@ lockAnswers = function(bool){
     }
 }
 
-function moveCars(){
-    $(".cars").animate({
-        opacity: 1,
-        transform: "translateY(-30%)",
-        transition: "opacity 0.2s ease-out, transform 0.7s"
-    });
+revealAnswer = function(data){
+    for (let i = 0; i < 4; i++){
+        if ($("#answer" + [i]).text() == data){
+            $("#answer" + [i]).addClass("highlight");
+            return i;
+        }
+    }
 }

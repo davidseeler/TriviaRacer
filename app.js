@@ -224,7 +224,8 @@ io.sockets.on('connection', function(socket){
 		if (data == activeGames[gameID]['players'][0]){
 			partyMessage({
 				type: "movePlayers",
-				score: activeGames[gameID]['score']
+				score: activeGames[gameID]['score'],
+				correct: activeGames[gameID]['questions']['results'][round]['correct_answer']
 			}, gameID);
 		}
 		activeGames[gameID]['round']++;
@@ -322,7 +323,7 @@ decrementLobby = function(lobby, indexToRemove){
 
 // Call Open Trivia Database API to retrieve question data
 function getData(category){
-    return fetch("https://opentdb.com/api.php?amount=10&" + category + "&type=multiple")
+    return fetch("https://opentdb.com/api.php?amount=10&" + category + "&difficulty=easy&type=multiple")
 		.then(res => res.json());
 }
 

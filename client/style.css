@@ -232,14 +232,27 @@ select{
     width: 40%;
 }
 
-#carList{
+#playerList{
     list-style: none;
-    border: 2px solid black;
-    height: 100%;
     width: 100%;
     padding: 0;
     margin: 0;
-    
+}
+
+#playerList li{
+    float: left;
+    width: 25%;
+    color: white;
+    text-align: center;
+}
+
+#carList{
+    list-style: none;
+    border: 2px solid black;
+    height: 95%;
+    width: 100%;
+    padding: 0;
+    margin: 0;
 }
 
 #carList li{
@@ -303,11 +316,8 @@ select{
 
 .highlight {
     color: rgb(10, 247, 10);
-    font-size: 30px;
+    font-size: 22px;
     font-weight: bold;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 	-webkit-text-stroke-width: 1px;
     -webkit-text-stroke-color: black;
   }

@@ -173,11 +173,12 @@ assignPlayers = function(party){
             $("#p4ReadyUp").removeAttr("disabled");
     }
 
-    // Ready up empty players
+    // Ready up empty players and assign columns
     for (let i = 0; i < 4; i++){
         if (party[i] == "Empty"){
             $("#p" + (i + 1) + "ReadyUp").attr("checked", true);
         }
+        $("#player" + (i + 1) + "Tag").html(party[i]);
     }
 }
 
@@ -214,7 +215,7 @@ loadGamePage = function(){
 }
 
 startCountDown = function(data){
-    $("#carList").attr("style",  "filter: blur(4px)");
+    $("#carList, #playerList").attr("style",  "filter: blur(4px)");
     $("#countdowntimer").attr("style", "display: block");
     let downloadTimer = setInterval(function(){
         $("#countdowntimer").html(data.time);
@@ -255,7 +256,7 @@ answerMsg = function(value){
 }
 
 displayQuestion = function(data){
-    $("#carList").attr("style",  "filter: blur(4px)");
+    $("#carList, #playerList").attr("style",  "filter: blur(4px)");
     $("#question").attr("style", "display: block");
     $("#question").html(data.question['question']);
     setAnswerChoices(data);
@@ -264,13 +265,14 @@ displayQuestion = function(data){
 
 movePlayers = function(data){
     $("#question").attr("style", "dispay: none");
-    $("#carList").attr("style",  "filter: blur(0)");
+    $("#carList, #playerList").attr("style",  "filter: blur(0)");
+    let sizeFactor = (document.getElementById("carList").clientHeight - 20) / 5;
 
     let answerIndex = revealAnswer(data.correct);
     setTimeout(function(){
         for (let i = 0; i < 4; i++){
             $("#car" + i).animate({
-                marginBottom: "" + (50 * data.score[i][1]) + "px"
+                marginBottom: "" + (sizeFactor * data.score[i][1]) + "%"
             });
         }
     }, 1000);

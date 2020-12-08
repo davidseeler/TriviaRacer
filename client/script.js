@@ -59,6 +59,9 @@ socket.on("partyMessage", function(data){
         $("#readyUpWindow").attr("style", "display: none");
         socket.emit("playGame", name);
     }
+    if (data.type == "scoreToWinChange"){
+        updateScoreToWin(data.value);
+    }
     if (data.type == "clientConfirmation"){
         socket.emit("playerReady", name);
     }
@@ -68,6 +71,9 @@ socket.on("partyMessage", function(data){
     }
     if (data.type == "movePlayers"){
         movePlayers(data);
+    }
+    if (data.type == "winner"){
+        console.log("weeener");
     }
 });
 
@@ -161,7 +167,7 @@ assignPlayers = function(party){
     // Assign ready up permissions
     switch(name){
         case party[0]: 
-            $("#p1ReadyUp").removeAttr("disabled");
+            $("#p1ReadyUp, #roundQuantity, #increment, #decrement").removeAttr("disabled");
             break;
         case party[1]:
             $("#p2ReadyUp").removeAttr("disabled");
@@ -266,7 +272,8 @@ displayQuestion = function(data){
 movePlayers = function(data){
     $("#question").attr("style", "dispay: none");
     $("#carList, #playerList").attr("style",  "filter: blur(0)");
-    let sizeFactor = (document.getElementById("carList").clientHeight - 20) / 5;
+    let sizeFactor = (document.getElementById("carList").clientHeight) / (parseInt(data.scoreToWin) + 2);
+    console.log("window height: " + document.getElementById("carList").clientHeight);
 
     let answerIndex = revealAnswer(data.correct);
     setTimeout(function(){
@@ -303,4 +310,22 @@ revealAnswer = function(data){
             return i;
         }
     }
+}
+
+increment = function(){
+    if ($("#scoreToWin").val() < 20){
+        $("#scoreToWin").get(0).value++;
+        socket.emit("scoreToWinChange", [name, $("#scoreToWin").val()]);
+    }
+}
+
+decrement = function(){
+    if ($("#scoreToWin").val() > 1){
+        $("#scoreToWin").get(0).value--;
+        socket.emit("scoreToWinChange", [name, $("#scoreToWin").val()]);
+    }
+}
+
+updateScoreToWin = function(quantity){
+    $("#scoreToWin").val(quantity);
 }

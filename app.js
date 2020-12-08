@@ -131,6 +131,7 @@ io.sockets.on('connection', function(socket){
 		activeGames[lobbyID]['round'] = 0;
 		activeGames[lobbyID]['questions'] = {};
 		activeGames[lobbyID]['score'] = [];
+		activeGames[lobbyID]['scoreToWin'] = 5;
 		createScoreArrays(lobbyID);
 
 		// Retrieve JSON from API and send to clients
@@ -165,6 +166,15 @@ io.sockets.on('connection', function(socket){
 		}
 	});
 
+	socket.on("scoreToWinChange", function(data){
+		let gameID = getGameID(data[0]);
+		activeGames[gameID]['scoreToWin'] = data[1];
+		partyMessage({
+			type: "scoreToWinChange",
+			value: data[1]
+		}, gameID);
+	});
+
 	socket.on("playGame", function(data){
 		let gameID = getGameID(data);
 		let round = activeGames[gameID]['round'];
@@ -185,7 +195,16 @@ io.sockets.on('connection', function(socket){
 		activeGames[gameID]['ready'].push(data);
 		// Last person to ready up sends the update to control overflow
 		if (data == activeGames[gameID]['ready'][3]){
-			if (round != 9){
+			let winner = checkForWinner(gameID);
+			if (winner[0]){
+				console.log("winner winner chicken dinner");
+				partyMessage({
+					type: "gameOver",
+					winner: winner[1],
+					score: activeGames[gameID]['score']
+				}, gameID);
+			}
+			else if (round != 19){
 				if (activeGames[gameID]['ready'].length == 4){
 					if (round == 0 ? clock = 3 : clock = 10);
 					partyMessage({
@@ -225,7 +244,8 @@ io.sockets.on('connection', function(socket){
 			partyMessage({
 				type: "movePlayers",
 				score: activeGames[gameID]['score'],
-				correct: activeGames[gameID]['questions']['results'][round]['correct_answer']
+				correct: activeGames[gameID]['questions']['results'][round]['correct_answer'],
+				scoreToWin: activeGames[gameID]['scoreToWin']
 			}, gameID);
 		}
 		activeGames[gameID]['round']++;
@@ -323,7 +343,7 @@ decrementLobby = function(lobby, indexToRemove){
 
 // Call Open Trivia Database API to retrieve question data
 function getData(category){
-    return fetch("https://opentdb.com/api.php?amount=10&" + category + "&difficulty=easy&type=multiple")
+    return fetch("https://opentdb.com/api.php?amount=20&" + category + "&difficulty=easy&type=multiple")
 		.then(res => res.json());
 }
 
@@ -408,4 +428,13 @@ getPlayerScoreIndex = function(player){
 			return i;
 		}
 	}
+}
+
+checkForWinner = function(gameID){
+	for (let i = 0; i < 4; i++){
+		if (activeGames[gameID]['score'][0][i] == activeGames[gameID]['scoreToWin']){
+			return [true, activeGames[gameID]['players'][i]];
+		}
+	}
+	return [false, ""];
 }

@@ -84,7 +84,11 @@
                     </ul>
                 </div>
                 <div class="row">
-                    <div id="readyUpWindow">Are you ready?
+                    <div id="readyUpWindow">Are you ready?<br>
+                        <label>Correct answers to win:</label>
+                        <input id="scoreToWin" type=number value=5 disabled>
+                        <button id="increment" onclick="increment()" disabled>+</button>
+                        <button id="decrement" onclick="decrement()" disabled>-</button>
                         <span id="player1"></span>
                         <span id="player2"></span>
                         <span id="player3"></span>

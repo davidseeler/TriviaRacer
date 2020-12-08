@@ -18,13 +18,13 @@ html{
     animation: moving 5s ease 15s infinite;  
 }
  
- #backgroundCar1 {
+#backgroundCar1 {
     top: 16%;
     -webkit-filter: hue-rotate(18deg); filter: hue-rotate(180deg);
     animation: moving 6s ease-in 9s infinite; 
  }
  
- #backgroundCar2 {
+#backgroundCar2 {
     top: 24%;
     -webkit-filter: hue-rotate(180deg); filter: hue-rotate(70deg);
     animation: moving 6.4s linear 12s infinite;
@@ -124,8 +124,8 @@ html{
 #readyUpWindow{
     display: none;
     position: fixed;
-    width: max(30%, 180px);
-    height: 25%;
+    width: 50%;
+    height: 30%;
     top: 40%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -320,4 +320,9 @@ select{
     font-weight: bold;
 	-webkit-text-stroke-width: 1px;
     -webkit-text-stroke-color: black;
-  }
+}
+
+#numOfRounds{
+    width: 30px;
+    height: 20px;
+}

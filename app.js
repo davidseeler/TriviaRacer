@@ -432,8 +432,8 @@ getPlayerScoreIndex = function(player){
 
 checkForWinner = function(gameID){
 	for (let i = 0; i < 4; i++){
-		if (activeGames[gameID]['score'][0][i] == activeGames[gameID]['scoreToWin']){
-			return [true, activeGames[gameID]['players'][i]];
+		if (activeGames[gameID]['score'][i][1] == activeGames[gameID]['scoreToWin']){
+			return [true, activeGames[gameID]['score'][i][0]];
 		}
 	}
 	return [false, ""];

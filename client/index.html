@@ -4,7 +4,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=yes">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-        <link rel="stylesheet" href="client/style.css">
+        <link rel="stylesheet" href="client/style.css" lang="sass">
         <link
       href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;900&display=swap"
       rel="stylesheet"
@@ -67,6 +67,11 @@
                     <button id="backButton" onclick="loadHomePage()">Back</button>
                     <span id='countdowntimer'>Game Starting</span>
                 </div>
+                <div id="winner">WINNER</div>
+                <div class="pyro">
+                    <div class="before"></div>
+                    <div class="after"></div>
+                </div>
                 <div id="racetrack" class="col no-gutters">
                     <div class="row no-gutters">
                         <ul id="playerList">
@@ -87,8 +92,8 @@
                     <div id="readyUpWindow">Are you ready?<br>
                         <label>Correct answers to win:</label>
                         <input id="scoreToWin" type=number value=5 disabled>
-                        <button id="increment" onclick="increment()" disabled>+</button>
                         <button id="decrement" onclick="decrement()" disabled>-</button>
+                        <button id="increment" onclick="increment()" disabled>+</button>
                         <span id="player1"></span>
                         <span id="player2"></span>
                         <span id="player3"></span>

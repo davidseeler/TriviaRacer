@@ -72,7 +72,14 @@ socket.on("partyMessage", function(data){
     if (data.type == "movePlayers"){
         movePlayers(data);
     }
-    if (data.type == "winner"){
+    if (data.type == "gameOver"){
+        console.log(data);
+        if (name == data.winner){
+            winnerAnimation(data);
+        }
+        else{
+            loserAnimation(data);
+        }
         console.log("weeener");
     }
 });
@@ -218,6 +225,8 @@ loadGamePage = function(){
     for (let element in gamePageElements){
         $("#" + gamePageElements[element]).attr("style", "display: block");
     }
+
+    lockAnswers(true);
 }
 
 startCountDown = function(data){
@@ -328,4 +337,18 @@ decrement = function(){
 
 updateScoreToWin = function(quantity){
     $("#scoreToWin").val(quantity);
+}
+
+winnerAnimation = function(data){
+    $(".pyro").attr("style", "display: block");
+    $("#winner").attr("style", "display: block");
+    setTimeout(function(){
+        //$("#resultsWindow").attr("style", "display: block");
+    }, 2000);
+    
+    console.log("made it");
+}
+
+loserAnimation = function(data){
+    console.log("loser");
 }

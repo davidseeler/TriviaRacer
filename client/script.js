@@ -165,15 +165,16 @@ startGame = function(data){
 }
 
 assignPlayers = function(party){
-    $("#player1").html("<div class='col no-gutters' id='rightReadyUp'>" + party[0] + "<input type='checkbox' id='p1ReadyUp' onclick='readyUp()' disabled></div>");
-    $("#player2").html("<div class='col no-gutters' id='righteadyUp'>" + party[1] + "<input type='checkbox' id='p2ReadyUp' onclick='readyUp()' disabled></div>");
-    $("#player3").html("<div class='col no-gutters' id='rightReadyUp'>" + party[2] + "<input type='checkbox' id='p3ReadyUp' onclick='readyUp()' disabled></div>");
-    $("#player4").html("<div class='col no-gutters' id='rightReadyUp'>" + party[3] + "<input type='checkbox' id='p4ReadyUp' onclick='readyUp()' disabled></div>");
+    $("#player1").html("<div class='col no-gutters'>" + party[0] + "<input type='checkbox' id='p1ReadyUp' onclick='readyUp()' disabled></div>");
+    $("#player2").html("<div class='col no-gutters'>" + party[1] + "<input type='checkbox' id='p2ReadyUp' onclick='readyUp()' disabled></div>");
+    $("#player3").html("<div class='col no-gutters'>" + party[2] + "<input type='checkbox' id='p3ReadyUp' onclick='readyUp()' disabled></div>");
+    $("#player4").html("<div class='col no-gutters'>" + party[3] + "<input type='checkbox' id='p4ReadyUp' onclick='readyUp()' disabled></div>");
 
     // Assign ready up permissions
     switch(name){
         case party[0]: 
             $("#p1ReadyUp, #roundQuantity, #increment, #decrement").removeAttr("disabled");
+            $("#p1ReadyUp").addClass("rightReadyUp");
             break;
         case party[1]:
             $("#p2ReadyUp").removeAttr("disabled");

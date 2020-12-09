@@ -305,8 +305,9 @@ html {
     float: left;
     width: 25%;
     height: 100%;
-    border: 2px solid black;
-    background-color: whitesmoke;
+    background-image: url("images/road.png");
+    background-position: center;
+    background-size: contain;
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
@@ -542,10 +543,3 @@ $box-shadow2: ();
     z-index: 5;
   }
 
-  #leftWindowUp{
-      background-color: red;
-  }
-
-  #rightWindowUp{
-      background-color: blue;
-  }

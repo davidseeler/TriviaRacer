@@ -230,7 +230,7 @@ loadGamePage = function(){
 }
 
 startCountDown = function(data){
-    $("#carList, #playerList").attr("style",  "filter: blur(4px)");
+    $("#carList, #finishLine, #playerList").attr("style",  "filter: blur(4px)");
     $("#countdowntimer").attr("style", "display: block");
     let downloadTimer = setInterval(function(){
         $("#countdowntimer").html(data.time);
@@ -271,7 +271,7 @@ answerMsg = function(value){
 }
 
 displayQuestion = function(data){
-    $("#carList, #playerList").attr("style",  "filter: blur(4px)");
+    $("#carList, #finishLine, #playerList").attr("style",  "filter: blur(4px)");
     $("#question").attr("style", "display: block");
     $("#question").html(data.question['question']);
     setAnswerChoices(data);
@@ -280,8 +280,8 @@ displayQuestion = function(data){
 
 movePlayers = function(data){
     $("#question").attr("style", "dispay: none");
-    $("#carList, #playerList").attr("style",  "filter: blur(0)");
-    let sizeFactor = (document.getElementById("carList").clientHeight) / (parseInt(data.scoreToWin) + 2);
+    $("#carList, #finishLine, #playerList").attr("style",  "filter: blur(0)");
+    let sizeFactor = (document.getElementById("carList").clientHeight) / parseInt(data.scoreToWin);
 
     let answerIndex = revealAnswer(data.correct);
     setTimeout(function(){

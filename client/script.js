@@ -67,7 +67,6 @@ socket.on("partyMessage", function(data){
     }
     if (data.type == "displayQuestion"){
         if (data.time == 3 ? startCountDown(data) : displayQuestion(data));
-        lockAnswers(false);
     }
     if (data.type == "movePlayers"){
         movePlayers(data);
@@ -212,6 +211,8 @@ loadHomePage = function(){
     for (let element in gamePageElements){
         $("#" + gamePageElements[element]).attr("style", "display: none");
     }
+    
+    resetGameState();
 
     // Reveal Home Page Elements
     $("#homePage").attr("style", "display: block");
@@ -227,6 +228,17 @@ loadGamePage = function(){
     }
 
     lockAnswers(true);
+}
+
+resetGameState = function(){
+    for (let i = 0; i < 4; i++){
+        $("#car" + i).attr("style", "margin-bottom: 0");
+        $("#answer" + i).html("&#" + (65 + i) + ";");
+    }
+    $("#resultsWindow, #winner, .pyro").attr("style", "display: none");
+    $("#startButton").attr("disabled", true);
+    $("#scoreToWin").val(5);
+    $("#countdowntimer").html("Game Starting");
 }
 
 startCountDown = function(data){
@@ -271,6 +283,7 @@ answerMsg = function(value){
 }
 
 displayQuestion = function(data){
+    lockAnswers(false);
     $("#carList, #finishLine, #playerList").attr("style",  "filter: blur(4px)");
     $("#question").attr("style", "display: block");
     $("#question").html(data.question['question']);
@@ -349,7 +362,6 @@ function setResults(data){
     data.score = (data.score).sort(function(a,b) {
         return a[0] - b[0]
     });
-    console.log(data);
     $("#firstPlace").html(data.score[0][0]);
     $("#secondPlace").html(data.score[1][0]);
     $("#thirdPlace").html(data.score[2][0]);

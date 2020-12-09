@@ -65,7 +65,6 @@ io.sockets.on('connection', function(socket){
 		});
 		hosts[data] = lobbyCount;
 		lobbyCount++;
-		//console.log(lobbies);
 	});
 
 	// On player joining a lobby
@@ -98,7 +97,6 @@ io.sockets.on('connection', function(socket){
 				});
 			}
 		}
-		//console.log(lobbies);
 	});
 
 	// On host changing category of lobby
@@ -177,8 +175,6 @@ io.sockets.on('connection', function(socket){
 
 	socket.on("playGame", function(data){
 		let gameID = getGameID(data);
-		let round = activeGames[gameID]['round'];
-
 		resetReadyPlayers(gameID);
 		
 		if (data == activeGames[gameID]['players'][0]){
@@ -197,7 +193,6 @@ io.sockets.on('connection', function(socket){
 		if (data == activeGames[gameID]['ready'][3]){
 			let winner = checkForWinner(gameID);
 			if (winner[0]){
-				console.log("winner winner chicken dinner");
 				partyMessage({
 					type: "gameOver",
 					winner: winner[1],
@@ -230,18 +225,13 @@ io.sockets.on('connection', function(socket){
 		let response = activeGames[gameID]['questions']['results'][round]['shuffledAnswers'][data[1]];
 
 		if (response == correctAnswer){
-			console.log("correct");
 			activeGames[gameID]['score'][getPlayerScoreIndex(data[0])][1]++;
-		}
-		else{
-			console.log("incorrect");
 		}
 	});
 
 	socket.on("checkAnswers", function(data){
 		let gameID = getGameID(data);
 		let round = activeGames[gameID]['round'];
-		console.log("checking answers...");
 		if (data == activeGames[gameID]['players'][0]){
 			partyMessage({
 				type: "movePlayers",
@@ -345,7 +335,7 @@ decrementLobby = function(lobby, indexToRemove){
 
 // Call Open Trivia Database API to retrieve question data
 function getData(category){
-    return fetch("https://opentdb.com/api.php?amount=20&" + category + "&difficulty=easy&type=multiple")
+    return fetch("https://opentdb.com/api.php?amount=20&" + category + "&type=multiple")
 		.then(res => res.json());
 }
 
@@ -411,10 +401,6 @@ resetReadyPlayers = function(gameID){
 	delete activeGames[gameID]['ready'];
 	activeGames[gameID]['ready'] = [];
 	readyUpEmpties(gameID);
-}
-
-checkAnswers = function(data){
-	console.log("checking answers...");
 }
 
 createScoreArrays = function(gameID){

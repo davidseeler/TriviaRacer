@@ -72,6 +72,14 @@
                     <div class="before"></div>
                     <div class="after"></div>
                 </div>
+                <div class="row">
+                    <div id="resultsWindow">Results<br>
+                        <span id="firstPlace">1</span><br>
+                        <span id="secondPlace">2</span><br>
+                        <span id="thirdPlace">3</span><br>
+                        <span id="fourthPlace">4</span><br>
+                    </div>
+                </div>
                 <div id="racetrack" class="col no-gutters">
                     <div class="row no-gutters">
                         <ul id="playerList">
@@ -94,10 +102,10 @@
                         <input id="scoreToWin" type=number value=5 disabled>
                         <button id="decrement" onclick="decrement()" disabled>-</button>
                         <button id="increment" onclick="increment()" disabled>+</button>
-                        <span id="player1"></span>
-                        <span id="player2"></span>
-                        <span id="player3"></span>
-                        <span id="player4"></span>
+                        <div class="col no-gutters" id="leftReadyUp"><span id="player1"></span></div>
+                        <div class="col no-gutters" id="leftReadyUp"><span id="player2"></span></div>
+                        <div class="col no-gutters" id="leftReadyUp"><span id="player3"></span></div>
+                        <div class="col no-gutters" id="leftReadyUp"><span id="player4"></span></div>
                     </div>
                 </div>
                 <div class="row">

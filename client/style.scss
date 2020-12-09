@@ -159,7 +159,7 @@ html {
   #readyUpWindow {
     display: none;
     position: fixed;
-    width: 50%;
+    width: 80%;
     height: 30%;
     top: 40%;
     left: 50%;
@@ -170,6 +170,10 @@ html {
     border-radius: 10px;
     text-align: center;
   }
+
+  #scoreToWin{
+    width: 10%;
+}
   
   #player1, #player2, #player3, #player4 {
     font-size: 20px;
@@ -254,11 +258,7 @@ html {
     background-color: whitesmoke;
   }
   
-  table tr, table td {
-    color: black;
-  }
-  
-  #readyUpWindow {
+  table tr, table td, #readyUpWindow {
     color: black;
   }
   
@@ -525,3 +525,27 @@ $box-shadow2: ();
   }
 }
 
+#resultsWindow {
+    display: none;
+    position: fixed;
+    width: 50%;
+    height: 30%;
+    margin-top: 10%;
+    left: 50%;
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    background-color: whitesmoke;
+    border: 2px solid black;
+    color: black;
+    border-radius: 10px;
+    text-align: center;
+    z-index: 5;
+  }
+
+  #leftWindowUp{
+      background-color: red;
+  }
+
+  #rightWindowUp{
+      background-color: blue;
+  }

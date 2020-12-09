@@ -80,7 +80,6 @@ socket.on("partyMessage", function(data){
         else{
             loserAnimation(data);
         }
-        console.log("weeener");
     }
 });
 
@@ -166,10 +165,10 @@ startGame = function(data){
 }
 
 assignPlayers = function(party){
-    $("#player1").html("<div>" + party[0] + "<input type='checkbox' id='p1ReadyUp' onclick='readyUp()' disabled></div>");
-    $("#player2").html("<div>" + party[1] + "<input type='checkbox' id='p2ReadyUp' onclick='readyUp()' disabled></div>");
-    $("#player3").html("<div>" + party[2] + "<input type='checkbox' id='p3ReadyUp' onclick='readyUp()' disabled></div>");
-    $("#player4").html("<div>" + party[3] + "<input type='checkbox' id='p4ReadyUp' onclick='readyUp()' disabled></div>");
+    $("#player1").html("<div class='col no-gutters' id='rightReadyUp'>" + party[0] + "<input type='checkbox' id='p1ReadyUp' onclick='readyUp()' disabled></div>");
+    $("#player2").html("<div class='col no-gutters' id='righteadyUp'>" + party[1] + "<input type='checkbox' id='p2ReadyUp' onclick='readyUp()' disabled></div>");
+    $("#player3").html("<div class='col no-gutters' id='rightReadyUp'>" + party[2] + "<input type='checkbox' id='p3ReadyUp' onclick='readyUp()' disabled></div>");
+    $("#player4").html("<div class='col no-gutters' id='rightReadyUp'>" + party[3] + "<input type='checkbox' id='p4ReadyUp' onclick='readyUp()' disabled></div>");
 
     // Assign ready up permissions
     switch(name){
@@ -282,7 +281,6 @@ movePlayers = function(data){
     $("#question").attr("style", "dispay: none");
     $("#carList, #playerList").attr("style",  "filter: blur(0)");
     let sizeFactor = (document.getElementById("carList").clientHeight) / (parseInt(data.scoreToWin) + 2);
-    console.log("window height: " + document.getElementById("carList").clientHeight);
 
     let answerIndex = revealAnswer(data.correct);
     setTimeout(function(){
@@ -343,12 +341,15 @@ winnerAnimation = function(data){
     $(".pyro").attr("style", "display: block");
     $("#winner").attr("style", "display: block");
     setTimeout(function(){
-        //$("#resultsWindow").attr("style", "display: block");
-    }, 2000);
-    
+        $("#resultsWindow").attr("style", "display: block");
+        $("#resultsWindow").animate({
+            marginTop: "70%"
+        }, 1000);
+
+    }, 3000);
     console.log("made it");
 }
 
 loserAnimation = function(data){
-    console.log("loser");
+    
 }

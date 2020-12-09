@@ -239,8 +239,8 @@ io.sockets.on('connection', function(socket){
 				correct: activeGames[gameID]['questions']['results'][round]['correct_answer'],
 				scoreToWin: activeGames[gameID]['scoreToWin']
 			}, gameID);
+			activeGames[gameID]['round']++;
 		}
-		activeGames[gameID]['round']++;
 	});
 
 });

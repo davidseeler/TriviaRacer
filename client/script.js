@@ -173,7 +173,7 @@ assignPlayers = function(party){
     // Assign ready up permissions
     switch(name){
         case party[0]: 
-            $("#p1ReadyUp, #roundQuantity, #increment, #decrement").removeAttr("disabled");
+            $("#p1ReadyUp, #scoreToWin, #increment, #decrement").removeAttr("disabled");
             $("#p1ReadyUp").addClass("rightReadyUp");
             break;
         case party[1]:

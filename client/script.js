@@ -73,7 +73,7 @@ socket.on("partyMessage", function(data){
         movePlayers(data);
     }
     if (data.type == "gameOver"){
-        console.log(data);
+        setResults(data);
         if (name == data.winner){
             winnerAnimation(data);
         }
@@ -338,19 +338,46 @@ updateScoreToWin = function(quantity){
     $("#scoreToWin").val(quantity);
 }
 
+convertMatrix = function(data){
+    let arr = [];
+    for (let i = 0; i < 4; i++){
+        arr.push(data.scores[i][1]);
+    }
+}
+
+function setResults(data){
+    data.score = (data.score).sort(function(a,b) {
+        return a[0] - b[0]
+    });
+    console.log(data);
+    $("#firstPlace").html(data.score[0][0]);
+    $("#secondPlace").html(data.score[1][0]);
+    $("#thirdPlace").html(data.score[2][0]);
+
+    $("#firstPlaceScore").html(data.score[0][1]);
+    $("#secondPlaceScore").html(data.score[1][1]);
+    $("#thirdPlaceScore").html(data.score[2][1]);
+    $(".scoreBase").html("/" + data.numberOfRounds);
+}
+
 winnerAnimation = function(data){
     $(".pyro").attr("style", "display: block");
     $("#winner").attr("style", "display: block");
     setTimeout(function(){
         $("#resultsWindow").attr("style", "display: block");
         $("#resultsWindow").animate({
-            marginTop: "70%"
+            marginTop: "65%"
         }, 1000);
 
     }, 3000);
-    console.log("made it");
 }
 
 loserAnimation = function(data){
-    
+    setTimeout(function(){
+        $("#resultsWindow").attr("style", "display: block");
+        $("#resultsWindow").animate({
+            marginTop: "65%"
+        }, 1000);
+
+    }, 3000);
 }

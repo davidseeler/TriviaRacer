@@ -67,19 +67,48 @@
                     <button id="backButton" onclick="loadHomePage()">Back</button>
                     <span id='countdowntimer'>Game Starting</span>
                 </div>
-                <div id="winner">WINNER</div>
+                <div class="row">
+                    <div id="resultsWindow"><span id="resultsHeader">Results</span><br>
+                        <div class="col no-gutters" id="resultsCol">
+                            <div class="row no-gutters" id="resultsRow">
+                                <div id="resultsColLeft">
+                                    <img class="medal" src="client/images/1stPlace.png">
+                                    <span id="firstPlace"></span>
+                                </div>
+                                <div id="resultsColRight">
+                                    <span id="firstPlaceScore"></span><span class="scoreBase"></span>
+                                </div>
+                            </div>
+                            <div class="row no-gutters" id="resultsRow">
+                                <div id="resultsColLeft">
+                                    <img class="medal" src="client/images/2ndPlace.png">
+                                    <span id="secondPlace"></span>
+                                </div>
+                                <div id="resultsColRight">
+                                    <span id="secondPlaceScore"></span><span class="scoreBase"></span>
+                                </div>
+                            </div>
+                            <div class="row no-gutters" id="resultsRow">
+                                <div id="resultsColLeft">
+                                    <img class="medal" src="client/images/3rdPlace.png">
+                                    <span id="thirdPlace"></span>
+                                </div>
+                                <div id="resultsColRight">
+                                    <span id="thirdPlaceScore"></span><span class="scoreBase"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="loadHomePage()">Home</button>
+                    </div>
+                </div>
                 <div class="pyro">
                     <div class="before"></div>
                     <div class="after"></div>
                 </div>
                 <div class="row">
-                    <div id="resultsWindow">Results<br>
-                        <span id="firstPlace">1</span><br>
-                        <span id="secondPlace">2</span><br>
-                        <span id="thirdPlace">3</span><br>
-                        <span id="fourthPlace">4</span><br>
-                    </div>
+                    <span id="winner">WINNER</span>
                 </div>
+                
                 <div id="racetrack" class="col no-gutters">
                     <div class="row no-gutters">
                         <ul id="playerList">

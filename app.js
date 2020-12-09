@@ -201,8 +201,10 @@ io.sockets.on('connection', function(socket){
 				partyMessage({
 					type: "gameOver",
 					winner: winner[1],
-					score: activeGames[gameID]['score']
+					score: activeGames[gameID]['score'],
+					numberOfRounds: round
 				}, gameID);
+				delete activeGames[gameID];
 			}
 			else if (round != 19){
 				if (activeGames[gameID]['ready'].length == 4){

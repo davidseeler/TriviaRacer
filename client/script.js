@@ -49,6 +49,9 @@ socket.on("broadcast", function(data){
             startGame(data);
         }
     }
+    if (data.type == "disconnection"){
+        $("#lobbyRow" + data.lobbyID).remove();
+    }
 });
 
 socket.on("partyMessage", function(data){
@@ -78,6 +81,11 @@ socket.on("partyMessage", function(data){
         }
         else{
             loserAnimation(data);
+        }
+    }
+    if (data.type == "disconnection"){
+        if (data.disconnected != name){
+            disconnection(data.disconnected);
         }
     }
 });
@@ -206,7 +214,7 @@ playerReadyUp = function(playerNumber){
 gamePageElements = ["gamePage", "ctx", "readyUpWindow", "backButton", "answerBox", "racetrack"];
 homePageElements = ["homePage"];
 
-loadHomePage = function(){
+loadHomePage = function(data){
     // Hide Game Page Elements
     for (let element in gamePageElements){
         $("#" + gamePageElements[element]).attr("style", "display: none");
@@ -216,6 +224,10 @@ loadHomePage = function(){
 
     // Reveal Home Page Elements
     $("#homePage").attr("style", "display: block");
+
+    if (data == "quit"){
+        socket.emit("quit", name);
+    }
 }
 
 loadGamePage = function(){
@@ -392,4 +404,10 @@ loserAnimation = function(data){
         }, 1000);
 
     }, 3000);
+}
+
+disconnection = function(player){
+    loadHomePage();
+    $("#modal-text").html("'" + player + "' left the game.");
+    $("#myModal").modal();
 }

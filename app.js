@@ -40,6 +40,7 @@ io.sockets.on('connection', function(socket){
 
 	// On disconnnection
 	socket.on('disconnect',function(){
+		removePlayerData(socket.number);
 		delete SOCKET_LIST[socket.id];
 		connCount--;
 		updateConnCount();
@@ -48,6 +49,10 @@ io.sockets.on('connection', function(socket){
 	// On player changes name
 	socket.on("updateName", function(data){
 		socket.number = data;
+	});
+
+	socket.on("quit", function(data){
+		removePlayerData(data);
 	});
 
 	// On player creating a new lobby
@@ -270,6 +275,31 @@ updateConnCount = function(){
 // Update users who just connected
 fetchExistingLobbies = function(socket){
 	socket.emit("fetchExistingLobbies", lobbies);
+}
+
+// Remove disconnected player's data
+removePlayerData = function(name){
+	for (let lobby in lobbies){
+		if (lobbies[lobby]['players'].includes(name)){
+			delete lobbies[lobby];
+			broadcast({
+				type: "disconnection",
+				lobbyID: lobby
+			});
+			break;
+		}
+	}
+	for (let game in activeGames){
+		if (activeGames[game]['players'].includes(name)){
+			let winner = checkForWinner(game);
+			partyMessage({
+				type: "disconnection",
+				disconnected: name
+			}, game);
+			delete activeGames[game];
+			break;
+		}
+	}
 }
 
 // Check if player is a host, remove his/her lobby

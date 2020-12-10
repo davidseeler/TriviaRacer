@@ -16,12 +16,12 @@
   "author": "David Seeler",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/davidseeler/TriviaRacer/issues"
+    "url": "http://triviaracer.me"
   },
   "homepage": "https://github.com/davidseeler/TriviaRacer#readme",
   "dependencies": {
     "express": "^4.17.1",
     "node-fetch": "^2.6.1",
-    "socket.io": "^3.0.3"
+    "socket.io": "^3.0.4"
   }
 }

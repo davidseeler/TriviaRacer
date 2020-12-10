@@ -15,6 +15,18 @@ socket.on("playerInfo", function(data){
     $("#nameInput").val(data);
 });
 
+socket.on("nameTaken", function(data){
+    $("#nameSpinner").hide();
+    $("#nameTaken").html("'" + data + "' is unavailable.")
+    $("#nameInput").attr("style", "border: 1px solid red");
+    $("#nameTaken").attr("style", "display: block");
+    $("#nameInput").click(function(){
+        $("#nameInput").val("");
+        $("#nameInput").attr("style", "border: none");
+        $("#nameTaken").attr("style", "display: none");
+    });
+});
+
 socket.on('count', function(data){
     $("#playerCount").html(data);
 });
@@ -35,6 +47,9 @@ socket.on("broadcast", function(data){
         $("#chatContent").append("<div>" + data.msg + "</div>");
         let y = document.getElementById("chatContent").scrollHeight; 
         document.getElementById("chatContent").scrollTo(0, y);
+    }
+    if (data.type == "nameChange"){
+        updateName(data);
     }
     if (data.type == "createLobby"){
         createLobby(data.lobbyID, data.name, data.size, data.category);
@@ -102,8 +117,23 @@ socket.on("partyMessage", function(data){
 });
 
 sendName = function(){
-    name = $("#nameInput").val();
-    socket.emit("updateName", name);
+    $("#nameSpinner").show();
+    let desiredName = $("#nameInput").val();
+    setTimeout(function(){
+        socket.emit("updateName", desiredName);
+    }, 500);
+}
+
+updateName = function(data){
+    if (data.isHost){
+        $("#host" + data.lobbyID).html(data.newName);
+    }
+    if (name == data.oldName){
+        name = data.newName;
+        $("#nameSpinner").hide();
+        $("#nameChanged").show();
+        $("#nameChanged").show("slow").delay(1250).hide("slow");
+    }
 }
 
 createLobbyMsg = function(){
@@ -120,7 +150,7 @@ createLobby = function(lobbyID, nameFromServer, size, category){
     "<option value='23'>History</option>" + "<option value='24'>Politics</option>" + "<option value='25'>Art</option>" +
     "<option value='26'>Celebrities</option>" + "<option value='27'>Animals</option>" + "<option value='28'>Vehicles</option>" + 
     "<option value='31'>Anime & Manga</option>" + "<option value='32'>Cartoon & Animations</option>" + "</select>";
-    let newLobby = $("<tr id='lobbyRow" + lobbyID + "'><td><span>" + nameFromServer + "</span></td><td id='lobbyCount" + lobbyID + "' value='" + size + "'>" + size + "/4</td><td id='categorySelect'>" + 
+    let newLobby = $("<tr id='lobbyRow" + lobbyID + "'><td><span id='host" + lobbyID + "'>" + nameFromServer + "</span></td><td id='lobbyCount" + lobbyID + "' value='" + size + "'>" + size + "/4</td><td id='categorySelect'>" + 
     "" + categoryOptions + "</td><td>" + joinButton + "</td></tr>");
     table.append(newLobby);
     $("#category" + lobbyID).val(category);

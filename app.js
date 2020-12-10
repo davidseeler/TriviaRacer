@@ -17,6 +17,7 @@ console.log("Server started.");
 
 // Global variables
 let SOCKET_LIST = {};
+let names = [];
 let activeGames = {};
 let lobbies = {};
 let hosts = {};
@@ -30,7 +31,7 @@ io.sockets.on('connection', function(socket){
 	socket.id = Math.random();
 	socket.x = 0;
 	socket.y = 20;
-	socket.number = "Player" + Math.floor(Math.random() * 1000);
+	socket.number = generateName();
 	SOCKET_LIST[socket.id] = socket;
 	updateConnCount();
 	fetchExistingLobbies(socket);
@@ -55,7 +56,40 @@ io.sockets.on('connection', function(socket){
 	
 	// On player changes name
 	socket.on("updateName", function(data){
-		socket.number = data;
+		if (!names.includes(data)){
+			let previousName = socket.number;
+			let isHost = false;
+			let partyID = "";
+			socket.number = data;
+			names[names.indexOf(previousName)] = data;
+
+			// Check if player is in a lobby
+			for (let lobby in lobbies){
+				if (lobbies[lobby]['players'].includes(previousName)){
+					isHost = false;
+					partyID = lobby;
+					let playerIndex = lobbies[lobby]['players'].indexOf(previousName);
+					lobbies[lobby]['players'][lobbies[lobby]['players'].indexOf(previousName)] = data;
+
+					// Check if host
+					if (playerIndex == 0){
+						isHost = true;
+						hosts[data] = hosts[previousName];
+						delete hosts[previousName];
+					}
+				}
+			}
+			broadcast({
+				type: "nameChange",
+				oldName: previousName,
+				newName: data,
+				isHost: isHost,
+				lobbyID: partyID,
+			});
+		}
+		else{
+			socket.emit("nameTaken", data);
+		}
 	});
 
 	socket.on("quit", function(data){
@@ -272,6 +306,15 @@ partyMessage = function(msg, gameID){
 	}
 }
 
+generateName = function(){
+	let name = "Player" + Math.floor(Math.random() * 1000)
+	while (names.includes(name)){
+		name = "Player" + Math.floor(Math.random() * 1000);
+	}
+	names.push(name);
+	return name;
+}
+
 updateConnCount = function(){
 	for(let i in SOCKET_LIST){
 		let socket = SOCKET_LIST[i];
@@ -306,6 +349,12 @@ removePlayerData = function(name){
 			delete activeGames[game];
 			break;
 		}
+	}
+	if (hosts[name] != null){
+		delete hosts[name];
+	}
+	if (names.indexOf(name) != null){
+		names.splice(names.indexOf(name), 1);
 	}
 }
 

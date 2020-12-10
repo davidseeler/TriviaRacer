@@ -675,3 +675,30 @@ $box-shadow2: ();
     height: 17%;
     overflow-y: scroll;
   }
+
+  #nameInput, #nameButton{
+    outline: none;
+  }
+
+  #nameSpinner{
+    position: absolute;
+    display: none;
+    margin-top: 8px;
+    left: 50%;
+  }
+  
+  #nameTaken{
+    position: absolute;
+    display: none;
+    margin-top: 3px;
+    left: 25%;
+    color: red;
+  }
+
+  #nameChanged{
+    position: absolute;
+    display: none;
+    margin-top: 3px;
+    left: 25%;
+    color: rgb(9, 255, 0);
+  }

@@ -333,7 +333,7 @@ decrementLobby = function(lobby, indexToRemove){
 
 // Call Open Trivia Database API to retrieve question data
 function getData(category){
-    return fetch("https://opentdb.com/api.php?amount=20&" + category + "&type=multiple")
+    return fetch("https://opentdb.com/api.php?amount=21&" + category + "&type=multiple")
 		.then(res => res.json());
 }
 

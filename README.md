@@ -8,4 +8,6 @@ jQuery<br>
 Bootstrap<br>
 SCSS<br>
 Open Trivia Database API<br>
-Heroku
+Heroku<br>
+Custom Domain: "triviaracer.me"<br>
+SSL certified

@@ -1,11 +1,11 @@
 # TriviaRacer
 https://triviaracer.herokuapp.com/
 
-NodeJS
-Express
-Socket.io
-jQuery
-Bootsrap
-SCSS
-Open Trivia Database API
+NodeJS<br>
+Express<br>
+Socket.io<br>
+jQuery<br>
+Bootsrap<br>
+SCSS<br>
+Open Trivia Database API<br>
 Heroku

@@ -192,7 +192,8 @@ io.sockets.on('connection', function(socket){
 		// Last person to ready up sends the update to control overflow
 		if (data == activeGames[gameID]['ready'][3]){
 			let winner = checkForWinner(gameID);
-			if (winner[0]){
+			// Check if someone has already crossed the finish-line or if rounds are up
+			if (winner[0] || round == 19){
 				partyMessage({
 					type: "gameOver",
 					winner: winner[1],
@@ -211,9 +212,6 @@ io.sockets.on('connection', function(socket){
 					}, gameID);
 					resetReadyPlayers(gameID);
 				}
-			}
-			else{
-				// game end	
 			}
 		}
 	});

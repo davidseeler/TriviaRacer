@@ -334,7 +334,7 @@ revealAnswer = function(data){
 }
 
 increment = function(){
-    if ($("#scoreToWin").val() < 20){
+    if ($("#scoreToWin").val() < 10){
         $("#scoreToWin").get(0).value++;
         socket.emit("scoreToWinChange", [name, $("#scoreToWin").val()]);
     }

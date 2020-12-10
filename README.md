@@ -5,7 +5,7 @@ NodeJS<br>
 Express<br>
 Socket.io<br>
 jQuery<br>
-Bootsrap<br>
+Bootstrap<br>
 SCSS<br>
 Open Trivia Database API<br>
 Heroku

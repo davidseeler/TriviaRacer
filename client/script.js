@@ -4,6 +4,12 @@ let playerNum = "";
 let party = "";
 let timeRemaining = 0;
 
+document.getElementById("chatForm").onsubmit = function(e){
+    e.preventDefault();
+    socket.emit("sendMsg", $("#chatMessage").val());
+    $("#chatMessage").val("");
+}
+
 socket.on("playerInfo", function(data){
     name = data;
     $("#nameInput").val(data);
@@ -25,6 +31,11 @@ socket.on("fetchExistingLobbies", function(data){
 });
 
 socket.on("broadcast", function(data){
+    if (data.type == "addToChat"){
+        $("#chatContent").append("<div>" + data.msg + "</div>");
+        let y = document.getElementById("chatContent").scrollHeight; 
+        document.getElementById("chatContent").scrollTo(0, y);
+    }
     if (data.type == "createLobby"){
         createLobby(data.lobbyID, data.name, data.size, data.category);
     }

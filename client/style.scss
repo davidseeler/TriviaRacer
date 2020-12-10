@@ -654,3 +654,24 @@ $box-shadow2: ();
     font-size: 23px;
     font-weight: bold;
   }
+
+  #chatForm{
+    text-align: center;
+    outline: none;
+  }
+
+  #chatMessage{
+    width: 85%;
+    outline: none;
+  }
+
+  #chatContent{
+    margin-top: 10%;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: white;
+    color: black;
+    width: 85%;
+    height: 17%;
+    overflow-y: scroll;
+  }

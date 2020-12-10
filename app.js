@@ -45,6 +45,13 @@ io.sockets.on('connection', function(socket){
 		connCount--;
 		updateConnCount();
 	});
+
+	socket.on("sendMsg", function(data){
+		broadcast({
+			type: "addToChat",
+			msg: "" + socket.number + ": " + data
+		});
+	});
 	
 	// On player changes name
 	socket.on("updateName", function(data){

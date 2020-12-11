@@ -186,7 +186,7 @@ io.sockets.on('connection', function(socket){
 			broadcast({
 				type: "startGame",
 				lobbyID: hosts[data],
-				party: party,
+				party: party
 			});
 			shuffleAnswers(lobbyID);
 		});
@@ -216,6 +216,15 @@ io.sockets.on('connection', function(socket){
 		partyMessage({
 			type: "scoreToWinChange",
 			value: data[1]
+		}, gameID);
+	});
+
+	socket.on("changeColor", function(data){
+		let gameID = getGameID(socket.number);
+		partyMessage({
+			type: "colorChange",
+			car: data[0],
+			color: data[1]
 		}, gameID);
 	});
 

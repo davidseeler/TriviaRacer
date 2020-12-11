@@ -91,6 +91,9 @@ socket.on("partyMessage", function(data){
     if (data.type == "scoreToWinChange"){
         updateScoreToWin(data.value);
     }
+    if (data.type == "colorChange"){
+        colorUpdate(data);
+    }
     if (data.type == "clientConfirmation"){
         socket.emit("playerReady", name);
     }
@@ -101,7 +104,6 @@ socket.on("partyMessage", function(data){
         movePlayers(data);
     }
     if (data.type == "gameOver"){
-        unreadyUp();
         setResults(data);
         if (name == data.winner){
             winnerAnimation(data);
@@ -190,6 +192,16 @@ changeCategory = function(id){
     });
 }
 
+changeColor = function(id){
+    $("#car" + (id - 1)).attr("src", "client/images/" + $("#color" + id).val() + "Car.png");
+    socket.emit("changeColor", [id, $("#color" + id).val()]);
+}
+
+colorUpdate = function(data){
+    $("#car" + (data.car - 1)).attr("src", "client/images/" + data.color + "Car.png");
+    $("#color" + (data.car)).val(data.color);
+}
+
 playerHop = function(lobbyID, size, host){
     $("#lobbyCount" + lobbyID).html(size + "/4");
     if (name != host){
@@ -213,10 +225,18 @@ startGame = function(data){
     loadGamePage();
 }
 
+readyUpEmpties = function(data){
+
+}
+
 assignPlayers = function(party){
     for (let i = 0; i < 4; i++){
         $("#player" + (i + 1)).html(party[i]);
-        $("#colorTD" + (i + 1)).html("<select id='color" + (i + 1) + "' class='selectpicker' disabled><option>White</option><option data-thumbnail='images/icon-chrome.png'>Chrome</option><option data-thumbnail='images/icon-firefox.png'>Firefox</option><option data-thumbnail='images/icon-ie.png'>IE</option><option data-thumbnail='images/icon-opera.png'>Opera</option><option data-thumbnail='images/icon-safari.png'>Safari</option></select>");
+        $("#colorTD" + (i + 1)).html("<select id='color" + (i + 1) + "' onchange='changeColor(" + (i + 1) + ")' disabled>\
+        <option value='white'>white</option><option value='red'>red</option><option value='blue'>blue</option>\
+        <option value='yellow'>yellow</option><option value='green'>green</option>\
+        <option value='orange'>orange<option value='navy'>navy</option><option value='purple'>purple<option value='neon'>neon</option>\
+        <option value='stripes'>stripes<option value='police'>police</option></select>");
     }
 
     // Assign ready up permissions
@@ -261,8 +281,6 @@ loadHomePage = function(data){
     for (let element in gamePageElements){
         $("#" + gamePageElements[element]).attr("style", "display: none");
     }
-    
-    resetGameState();
 
     // Reveal Home Page Elements
     $("#homePage").attr("style", "display: block");
@@ -270,6 +288,8 @@ loadHomePage = function(data){
     if (data == "quit"){
         socket.emit("quit", name);
     }
+
+    resetGameState();
 }
 
 loadGamePage = function(){
@@ -287,7 +307,9 @@ loadGamePage = function(){
 resetGameState = function(){
     for (let i = 0; i < 4; i++){
         $("#car" + i).attr("style", "margin-bottom: 0");
+        $("#car" + i).attr("src", "client/images/whiteCar.png");
         $("#answer" + i).html("&#" + (65 + i) + ";");
+        //$("#p" + (i + 1) + "ReadyUp").prop("checked", false);
     }
     $("#resultsWindow, #winner, .pyro").attr("style", "display: none");
     $("#startButton").attr("disabled", true);
@@ -458,12 +480,6 @@ disconnection = function(player){
     loadHomePage();
     $("#modal-text").html("'" + player + "' left the game.");
     $("#myModal").modal();
-}
-
-unreadyUp = function(){
-    for (let i = 0; i < 4; i++){
-        $("#p" + (i + 1) + "ReadyUp").removeAttr("checked");
-    }
 }
 
 const circles = document.querySelectorAll('.circle')

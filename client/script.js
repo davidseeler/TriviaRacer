@@ -258,7 +258,7 @@ assignPlayers = function(party){
     // Ready up empty players and assign columns
     for (let i = 0; i < 4; i++){
         if (party[i] == "Empty"){
-            $("#p" + (i + 1) + "ReadyUp").attr("checked", true);
+            $("#p" + (i + 1) + "ReadyUp").prop("checked", true);
         }
         $("#player" + (i + 1) + "Tag").html(party[i]);
     }
@@ -269,7 +269,7 @@ readyUp = function(){
 }
 
 playerReadyUp = function(playerNumber){
-    $("#p" + (playerNumber + 1) + "ReadyUp").attr("checked", true);
+    $("#p" + (playerNumber + 1) + "ReadyUp").prop("checked", true);
     $("#p" + (playerNumber + 1) + "ReadyUp").attr("disabled", true);
 }
 
@@ -309,7 +309,7 @@ resetGameState = function(){
         $("#car" + i).attr("style", "margin-bottom: 0");
         $("#car" + i).attr("src", "client/images/whiteCar.png");
         $("#answer" + i).html("&#" + (65 + i) + ";");
-        //$("#p" + (i + 1) + "ReadyUp").prop("checked", false);
+        $("#p" + (i + 1) + "ReadyUp").prop("checked", false);
     }
     $("#resultsWindow, #winner, .pyro").attr("style", "display: none");
     $("#startButton").attr("disabled", true);

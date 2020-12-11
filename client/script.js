@@ -308,10 +308,7 @@ startCountDown = function(data){
             clearInterval(downloadTimer);
             $("#countdowntimer").hide();
             $("#stoplight").hide("fast");
-            setTimeout(function(){
-                displayQuestion(data);
-            }, 750);
-            
+            displayQuestion(data);  
         }
     },1200);
 }
@@ -346,8 +343,8 @@ answerMsg = function(value){
 displayQuestion = function(data){
     lockAnswers(false);
     $("#carList, #finishLine, #playerList").attr("style",  "filter: blur(4px)");
-    $("#question").attr("style", "display: block");
     $("#question").html(data.question['question']);
+    $("#question").attr("style", "display: block");
     setAnswerChoices(data);
     startTimer(10);
 }
@@ -465,7 +462,7 @@ const circles = document.querySelectorAll('.circle')
 let activeLight = 0;
 $("#stoplight").hide();
 
-function changeLight() {
+changeLight = function(){
   circles[activeLight].className = 'circle';
   activeLight++;
   

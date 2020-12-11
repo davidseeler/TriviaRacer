@@ -235,7 +235,7 @@ html, body{
     overflow: hidden;
     font-size: 50px;
     position: fixed;
-    top: 32%;
+    top: 39%;
     left: 50%;
     -webkit-transform: translate(-50%, -50%);
             transform: translate(-50%, -50%);
@@ -707,7 +707,7 @@ $box-shadow2: ();
   #stoplight {
     z-index: 1;
     position: fixed;
-    top: 45%;
+    top: 51%;
     left: 50%;
     -webkit-transform: translate(-50%, -50%);
             transform: translate(-50%, -50%);
@@ -720,6 +720,7 @@ $box-shadow2: ();
     padding: 15px 0;
     height: 70px;
     width: 200px;
+    border: 1px solid black;
   }
   
   .circle {
@@ -728,6 +729,7 @@ $box-shadow2: ();
     position: relative;
     height: 40px;
     width: 40px;
+    border: 1px solid black;
   }
   
   .circle::after {

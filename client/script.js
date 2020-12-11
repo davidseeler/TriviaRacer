@@ -297,15 +297,23 @@ resetGameState = function(){
 startCountDown = function(data){
     $("#carList, #finishLine, #playerList").attr("style",  "filter: blur(4px)");
     $("#countdowntimer").attr("style", "display: block");
+    $("#stoplight").show(1200);
     let downloadTimer = setInterval(function(){
         $("#countdowntimer").html(data.time);
         data.time--;
+        if (data.time < 2){
+            changeLight();
+        }
         if(data.time <= -1){
             clearInterval(downloadTimer);
-            $("#countdowntimer").attr("style", "display: none");
-            displayQuestion(data);
+            $("#countdowntimer").hide();
+            $("#stoplight").hide("fast");
+            setTimeout(function(){
+                displayQuestion(data);
+            }, 750);
+            
         }
-    },1000);
+    },1200);
 }
 
 startTimer = function(time){
@@ -451,4 +459,21 @@ disconnection = function(player){
     loadHomePage();
     $("#modal-text").html("'" + player + "' left the game.");
     $("#myModal").modal();
+}
+
+const circles = document.querySelectorAll('.circle')
+let activeLight = 0;
+$("#stoplight").hide();
+
+function changeLight() {
+  circles[activeLight].className = 'circle';
+  activeLight++;
+  
+  if(activeLight > 2) {
+    activeLight = 0;
+  }
+  
+  const currentLight = circles[activeLight]
+  
+  currentLight.classList.add(currentLight.getAttribute('color'));
 }

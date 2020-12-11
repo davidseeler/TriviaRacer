@@ -462,7 +462,7 @@ disconnection = function(player){
 
 unreadyUp = function(){
     for (let i = 0; i < 4; i++){
-        $("#p" + i + "readyUp").removeAttr("checked");
+        $("#p" + (i + 1) + "ReadyUp").removeAttr("checked");
     }
 }
 

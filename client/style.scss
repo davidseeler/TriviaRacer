@@ -153,6 +153,28 @@ html, body{
   
   #lobbyTable {
     border: 1px solid black;
+    width: 95%;
+    overflow: hidden;
+  }
+
+  #lobbyTable #host{
+    overflow: hidden;
+    width: 23%;
+  }
+
+  #lobbyTable #capacity{
+    overflow: hidden;
+    width: 19%;
+  }
+
+  #lobbyTable #category{
+    overflow: hidden;
+    width: 20%;
+  }
+
+  #lobbyTable #join{
+    overflow: hidden;
+    width: 18%;
   }
   
   #lobbyTable td, #lobbyTable th {

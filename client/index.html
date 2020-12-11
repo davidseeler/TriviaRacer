@@ -37,7 +37,7 @@
                 </div>
                 <div class="row">
                     <div id="chooseName">
-                        <label>Choose your nickname</label><br>
+                        <span>Choose your nickname</span><br>
                         <input type="text" id="nameInput">
                         <button id="nameButton" onclick="sendName()">Confirm</button>
                         <div id="nameChanged">Name change successful!</div>
@@ -61,9 +61,10 @@
                 
                 <div class="row" id="lobbyTableRow">
                     <span id="lobbyTableTitle">Create or join a lobby to play</span>
-                    <table id="lobbyTable" class="table-striped">
+                    <table id="lobbyTable" class="table-striped" class="fixed">
+                        
                         <tr>
-                            <th>Host</th><th>Capacity</th><th>Category</th><th></th>
+                            <th id="host">Host</th><th id="capacity">Capacity</th><th id="category">Category</th><th id="join"></th>
                         </tr>
                     </table>
                 </div>

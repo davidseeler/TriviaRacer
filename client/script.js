@@ -443,8 +443,9 @@ convertMatrix = function(data){
 
 function setResults(data){
     data.score = (data.score).sort(function(a,b) {
-        return a[0] - b[0]
+        return b[1] - a[1]
     });
+    console.log(data.score);
     $("#firstPlace").html(data.score[0][0]);
     $("#secondPlace").html(data.score[1][0]);
     $("#thirdPlace").html(data.score[2][0]);

@@ -39,18 +39,31 @@ io.sockets.on('connection', function(socket){
 	// Inform client of their information
 	socket.emit("playerInfo", socket.number);
 
+	broadcast({
+		type: "addToChat",
+		msg: "" + socket.number + " connected." ,
+		system: true
+	});
+
 	// On disconnnection
 	socket.on('disconnect',function(){
 		removePlayerData(socket.number);
 		delete SOCKET_LIST[socket.id];
 		connCount--;
 		updateConnCount();
+
+		broadcast({
+			type: "addToChat",
+			msg: "" + socket.number + " disconnected." ,
+			system: true
+		});
 	});
 
 	socket.on("sendMsg", function(data){
 		broadcast({
 			type: "addToChat",
-			msg: "" + socket.number + ": " + data
+			msg: "" + socket.number + ": " + data,
+			system: false
 		});
 	});
 	

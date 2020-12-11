@@ -688,6 +688,7 @@ $box-shadow2: ();
   }
 
   #chatContent{
+    padding-left: 5px;
     margin-top: 10%;
     margin-left: auto;
     margin-right: auto;
@@ -805,4 +806,10 @@ $box-shadow2: ();
   #p1ReadyUp, #p2ReadyUp, #p3ReadyUp, #p4ReadyUp{
     margin-left: auto;
     margin-right: auto;
+  }
+
+  .systemMsg{
+    color: rgb(56, 190, 3);
+    font-weight: 500;
+    font-family: Arial, Helvetica, sans-serif;
   }

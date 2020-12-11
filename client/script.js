@@ -44,6 +44,9 @@ socket.on("fetchExistingLobbies", function(data){
 
 socket.on("broadcast", function(data){
     if (data.type == "addToChat"){
+        if (data.system){
+            data.msg = "<span class='systemMsg'>SYSTEM: </span>" + data.msg;
+        }
         $("#chatContent").append("<div>" + data.msg + "</div>");
         let y = document.getElementById("chatContent").scrollHeight; 
         document.getElementById("chatContent").scrollTo(0, y);

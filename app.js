@@ -235,7 +235,7 @@ io.sockets.on('connection', function(socket){
 		let round = activeGames[gameID]['round'];
 		let clock = 0;
 		activeGames[gameID]['ready'].push(data);
-		// Last person to ready up sends the update to control overflow
+		// Last person to ready up sends the update
 		if (data == activeGames[gameID]['ready'][3]){
 			let winner = checkForWinner(gameID);
 			// Check if someone has already crossed the finish-line or if rounds are up

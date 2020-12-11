@@ -1,6 +1,7 @@
 html {
-    overflow: hidden !important;
-  }
+  overflow: hidden !important;
+  
+}
 
 html, body{
   margin: 0 !important;
@@ -190,8 +191,8 @@ html, body{
   #readyUpWindow {
     display: none;
     position: fixed;
-    width: 80%;
-    height: 30%;
+    width: 60%;
+    height: 35%;
     top: 40%;
     left: 50%;
     -webkit-transform: translate(-50%, -50%);
@@ -203,11 +204,12 @@ html, body{
   }
 
   #scoreToWin{
-    width: 10%;
+    font-size: 10px;
+    width: 20%;
+    text-align: center;
 }
   
   #player1, #player2, #player3, #player4 {
-    font-size: 20px;
     text-align: left;
   }
   
@@ -780,3 +782,29 @@ $box-shadow2: ();
     box-shadow: 0 0 20px 5px #2ecc71;
   }
   
+  #readyUpTable{
+    margin-left: auto;
+    margin-right: auto;
+    border: 1px solid black;
+    margin-top: 10px;
+  }
+
+  #readyUpTable td, #readyUpTable th, #readyUpTable tr{
+    border: 1px solid black;
+    text-align: center;
+  }
+
+  #increment, #decrement{
+    font-size: 10px;
+    font-weight: bold;
+  }
+
+  #areYouReady{
+    margin-top: 2px;
+    margin-bottom: 0px;
+  }
+
+  #p1ReadyUp, #p2ReadyUp, #p3ReadyUp, #p4ReadyUp{
+    margin-left: auto;
+    margin-right: auto;
+  }

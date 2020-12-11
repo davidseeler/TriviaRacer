@@ -153,11 +153,19 @@
                     </ul>
                 </div>
                 <div class="row">
-                    <div id="readyUpWindow">Are you ready?<br>
-                        <label>Correct answers to win:</label>
-                        <input id="scoreToWin" type=number value=5 disabled>
+                    <div id="readyUpWindow">
+                        <h5 id="areYouReady">Are you ready?</h5>
+                        <span>Correct answers to win:</span><br>
                         <button id="decrement" onclick="decrement()" disabled>-</button>
+                        <input id="scoreToWin" type=number value=5 disabled>
                         <button id="increment" onclick="increment()" disabled>+</button>
+                        <table id="readyUpTable" class="table-striped" class="fixed">
+                            <tr><th>Player</th><th>Ready</th><th>Color</th></tr>
+                            <tr><td><span id="player1"></span></td><td><input type='checkbox' id='p1ReadyUp' onclick='readyUp()' disabled></td><td id="colorTD1"></td></tr>
+                            <tr><td><span id="player2"></span></td><td><input type='checkbox' id='p2ReadyUp' onclick='readyUp()' disabled></td><td id="colorTD2"></td></tr>
+                            <tr><td><span id="player3"></span></td><td><input type='checkbox' id='p3ReadyUp' onclick='readyUp()' disabled></td><td id="colorTD3"></td></tr>
+                            <tr><td><span id="player4"></span></td><td><input type='checkbox' id='p4ReadyUp' onclick='readyUp()' disabled></td><td id="colorTD4"></td></tr>
+                        </table>
                         <div class="col no-gutters"><span id="player1"></span></div>
                         <div class="col no-gutters"><span id="player2"></span></div>
                         <div class="col no-gutters"><span id="player3"></span></div>

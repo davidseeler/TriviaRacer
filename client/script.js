@@ -101,6 +101,7 @@ socket.on("partyMessage", function(data){
         movePlayers(data);
     }
     if (data.type == "gameOver"){
+        unreadyUp();
         setResults(data);
         if (name == data.winner){
             winnerAnimation(data);
@@ -213,25 +214,25 @@ startGame = function(data){
 }
 
 assignPlayers = function(party){
-    $("#player1").html("<div class='col no-gutters'>" + party[0] + "<input type='checkbox' id='p1ReadyUp' onclick='readyUp()' disabled></div>");
-    $("#player2").html("<div class='col no-gutters'>" + party[1] + "<input type='checkbox' id='p2ReadyUp' onclick='readyUp()' disabled></div>");
-    $("#player3").html("<div class='col no-gutters'>" + party[2] + "<input type='checkbox' id='p3ReadyUp' onclick='readyUp()' disabled></div>");
-    $("#player4").html("<div class='col no-gutters'>" + party[3] + "<input type='checkbox' id='p4ReadyUp' onclick='readyUp()' disabled></div>");
+    for (let i = 0; i < 4; i++){
+        $("#player" + (i + 1)).html(party[i]);
+        $("#colorTD" + (i + 1)).html("<select id='color" + (i + 1) + "' class='selectpicker' disabled><option>White</option><option data-thumbnail='images/icon-chrome.png'>Chrome</option><option data-thumbnail='images/icon-firefox.png'>Firefox</option><option data-thumbnail='images/icon-ie.png'>IE</option><option data-thumbnail='images/icon-opera.png'>Opera</option><option data-thumbnail='images/icon-safari.png'>Safari</option></select>");
+    }
 
     // Assign ready up permissions
     switch(name){
         case party[0]: 
-            $("#p1ReadyUp, #scoreToWin, #increment, #decrement").removeAttr("disabled");
+            $("#p1ReadyUp, #scoreToWin, #increment, #decrement, #color1").removeAttr("disabled");
             $("#p1ReadyUp").addClass("rightReadyUp");
             break;
         case party[1]:
-            $("#p2ReadyUp").removeAttr("disabled");
+            $("#p2ReadyUp, #color2").removeAttr("disabled");
             break;
         case party[2]:
-            $("#p3ReadyUp").removeAttr("disabled");
+            $("#p3ReadyUp, #color3").removeAttr("disabled");
             break;
         case party[3]:
-            $("#p4ReadyUp").removeAttr("disabled");
+            $("#p4ReadyUp, #color4").removeAttr("disabled");
     }
 
     // Ready up empty players and assign columns
@@ -292,6 +293,8 @@ resetGameState = function(){
     $("#startButton").attr("disabled", true);
     $("#scoreToWin").val(5);
     $("#countdowntimer").html("Game Starting");
+    $("#countdowntimer").hide();
+    $("#stoplight").hide("fast");
 }
 
 startCountDown = function(data){
@@ -438,7 +441,6 @@ winnerAnimation = function(data){
         $("#resultsWindow").animate({
             marginTop: "65%"
         }, 1000);
-
     }, 3000);
 }
 
@@ -456,6 +458,12 @@ disconnection = function(player){
     loadHomePage();
     $("#modal-text").html("'" + player + "' left the game.");
     $("#myModal").modal();
+}
+
+unreadyUp = function(){
+    for (let i = 0; i < 4; i++){
+        $("#p" + i + "readyUp").removeAttr("checked");
+    }
 }
 
 const circles = document.querySelectorAll('.circle')

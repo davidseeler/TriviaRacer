@@ -1,13 +1,12 @@
-html {
-  overflow: hidden !important;
-  
-}
-
 html, body{
   margin: 0 !important;
   padding: 0 !important;
   width: 100% !important;
   height: 100% !important;
+}
+
+button{
+  border-radius: 0px;
 }
 
   .backgroundCar {
@@ -683,7 +682,7 @@ $box-shadow2: ();
   }
 
   #chatMessage{
-    width: 85%;
+    width: 90%;
     outline: none;
   }
 
@@ -694,7 +693,7 @@ $box-shadow2: ();
     margin-right: auto;
     background-color: white;
     color: black;
-    width: 85%;
+    width: 90%;
     height: 17%;
     overflow-y: scroll;
   }

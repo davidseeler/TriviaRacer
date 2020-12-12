@@ -123,8 +123,8 @@ socket.on("partyMessage", function(data){
 });
 
 sendName = function(){
-    if ($("#nameInput").val().length > 7){
-        $("#nameTaken").html("Name must be less than 8 characters.")
+    if ($("#nameInput").val().length > 9){
+        $("#nameTaken").html("Name must be less than 10 characters.")
         $("#nameInput").attr("style", "border: 1px solid red");
         $("#nameTaken").attr("style", "display: block");
         $("#nameInput").click(function(){

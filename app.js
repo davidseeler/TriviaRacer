@@ -99,7 +99,7 @@ io.sockets.on('connection', function(socket){
 				isHost: isHost,
 				lobbyID: partyID,
 				nameChange: true,
-				msg: "'" + previousName +"' now goes by '" + data + "'.",
+				msg: "" + previousName +" now goes by '" + data + "'.",
 				system: true
 			});
 		}

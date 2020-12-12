@@ -263,6 +263,25 @@ assignPlayers = function(party){
         if (party[i] == "Empty"){
             $("#p" + (i + 1) + "ReadyUp").prop("checked", true);
         }
+        else{
+            console.log(i);
+            if (i == 0){
+                $("#car0").attr("src", "client/images/redCar.png");
+                $("#color1").val("red");
+            }
+            else if (i == 1){
+                $("#car1").attr("src", "client/images/blueCar.png");
+                $("#color2").val("blue");
+            }
+            else if (i == 2){
+                $("#car2").attr("src", "client/images/yellowCar.png");
+                $("#color3").val("yellow");
+            }
+            else{
+                $("#car3").attr("src", "client/images/greenCar.png");
+                $("#color4").val("green");
+            }
+        }
         $("#player" + (i + 1) + "Tag").html(party[i]);
     }
 }

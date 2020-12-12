@@ -93,11 +93,14 @@ io.sockets.on('connection', function(socket){
 				}
 			}
 			broadcast({
-				type: "nameChange",
+				type: "addToChat",
 				oldName: previousName,
 				newName: data,
 				isHost: isHost,
 				lobbyID: partyID,
+				nameChange: true,
+				msg: "'" + previousName +"' now goes by '" + data + "'.",
+				system: true
 			});
 		}
 		else{

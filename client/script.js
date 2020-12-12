@@ -44,15 +44,15 @@ socket.on("fetchExistingLobbies", function(data){
 
 socket.on("broadcast", function(data){
     if (data.type == "addToChat"){
+        if (data.nameChange){
+            updateName(data);
+        }
         if (data.system){
             data.msg = "<span class='systemMsg'>SYSTEM: </span>" + data.msg;
         }
         $("#chatContent").append("<div>" + data.msg + "</div>");
         let y = document.getElementById("chatContent").scrollHeight; 
         document.getElementById("chatContent").scrollTo(0, y);
-    }
-    if (data.type == "nameChange"){
-        updateName(data);
     }
     if (data.type == "createLobby"){
         createLobby(data.lobbyID, data.name, data.size, data.category);
@@ -123,11 +123,23 @@ socket.on("partyMessage", function(data){
 });
 
 sendName = function(){
-    $("#nameSpinner").show();
-    let desiredName = $("#nameInput").val();
-    setTimeout(function(){
-        socket.emit("updateName", desiredName);
-    }, 500);
+    if ($("#nameInput").val().length > 7){
+        $("#nameTaken").html("Name must be less than 8 characters.")
+        $("#nameInput").attr("style", "border: 1px solid red");
+        $("#nameTaken").attr("style", "display: block");
+        $("#nameInput").click(function(){
+            $("#nameInput").val("");
+            $("#nameInput").attr("style", "border: none");
+            $("#nameTaken").attr("style", "display: none");
+        });
+    }
+    else{
+        $("#nameSpinner").show();
+        let desiredName = $("#nameInput").val();
+        setTimeout(function(){
+            socket.emit("updateName", desiredName);
+        }, 500);
+    }
 }
 
 updateName = function(data){
@@ -264,7 +276,6 @@ assignPlayers = function(party){
             $("#p" + (i + 1) + "ReadyUp").prop("checked", true);
         }
         else{
-            console.log(i);
             if (i == 0){
                 $("#car0").attr("src", "client/images/redCar.png");
                 $("#color1").val("red");
@@ -467,7 +478,6 @@ function setResults(data){
     data.score = (data.score).sort(function(a,b) {
         return b[1] - a[1]
     });
-    console.log(data.score);
     $("#firstPlace").html(data.score[0][0]);
     $("#secondPlace").html(data.score[1][0]);
     $("#thirdPlace").html(data.score[2][0]);

@@ -376,7 +376,11 @@ startTimer = function(time){
     let downloadTimer = setInterval(function(){
         $("#stopwatch").html(time);
         time--;
+        if (time <= 2){
+            $("#stopwatch").addClass("blink_me");
+        }
         if(time <= -2){
+            $("#stopwatch").removeClass("blink_me");
             clearInterval(downloadTimer);
             $("#stopwatch").attr("style", "display: none");
             $("#stopwatch").html(10);

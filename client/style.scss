@@ -813,3 +813,13 @@ $box-shadow2: ();
     font-weight: 500;
     font-family: Arial, Helvetica, sans-serif;
   }
+
+  .blink_me {
+    animation: blinker 1s linear infinite;
+  }
+  
+  @keyframes blinker {
+    50% {
+      opacity: 0;
+    }
+  }

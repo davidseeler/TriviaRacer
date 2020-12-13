@@ -240,10 +240,6 @@ startGame = function(data){
     loadGamePage();
 }
 
-readyUpEmpties = function(data){
-
-}
-
 assignPlayers = function(party){
     for (let i = 0; i < 4; i++){
         $("#player" + (i + 1)).html(party[i]);

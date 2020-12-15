@@ -235,87 +235,20 @@ io.sockets.on('connection', function (socket) {
     socket.on("playGame", function () {
         var gameID = getGameID(socket.username);
         resetReadyPlayers(gameID);
-        // Host initiates client confirmation
+        // Host sends first question
         if (socket.username == activeGames[gameID]['players'][0]) {
+            // Broadcast question to party
             partyMessage({
-                type: "clientConfirmation"
+                type: "displayQuestion",
+                question: activeGames[gameID]['questions']['results'][0],
+                time: 3
             }, gameID);
+            // "unready" the players and wait for 4 more ready confirmations
+            resetReadyPlayers(gameID);
+            setEmptiesAnswer(gameID);
         }
     });
-    // Sync up all players for next question (during game)
-    socket.on("playerReady", function () {
-        var gameID = getGameID(socket.username);
-        var round = activeGames[gameID]['round'];
-        var clock = 0;
-        // Mark the sending player as ready
-        activeGames[gameID]['ready'].push(socket.username);
-        // Last socket to ready up sends the update
-        if (socket.username == activeGames[gameID]['ready'][3]) {
-            var winner = checkForWinner(gameID);
-            // Check for winner or round limit reached
-            if (winner[0] || round == 19) {
-                // Broadcast game over and delete game session
-                partyMessage({
-                    type: "gameOver",
-                    winner: winner[1],
-                    score: activeGames[gameID]['score'],
-                    numberOfRounds: round
-                }, gameID);
-                delete activeGames[gameID];
-            }
-            // Continue/Start playing
-            else if (round != 19) {
-                if (activeGames[gameID]['ready'].length == 4) {
-                    if (round == 0) {
-                        clock = 3; // 3 second countdown at start
-                    }
-                    else {
-                        clock = 10; // 10 second for questions
-                    }
-                    // Broadcast question to party
-                    partyMessage({
-                        type: "displayQuestion",
-                        question: activeGames[gameID]['questions']['results'][round],
-                        time: clock
-                    }, gameID);
-                    // "unready" the players and wait for 4 more ready confirmations
-                    resetReadyPlayers(gameID);
-                    setEmptiesAnswer(gameID);
-                }
-            }
-        }
-    });
-    // Handle player answering a question
-    socket.on("answer", function (data) {
-        var gameID = getGameID(data[0]);
-        var round = activeGames[gameID]['round'];
-        var correctAnswer = activeGames[gameID]['questions']['results'][round]['correct_answer'];
-        var response = activeGames[gameID]['questions']['results'][round]['shuffledAnswers'][data[1]];
-        // Increment player's score if answered correctly
-        if (response == correctAnswer) {
-            activeGames[gameID]['score'][getPlayerScoreIndex(data[0])][1]++;
-        }
-    });
-    // Check the answers at the end of a round
-    socket.on("checkAnswers", function () {
-        try {
-            var gameID = getGameID(socket.username);
-            var round = activeGames[gameID]['round'];
-            // Host sends a score update (which moves the cars)
-            if (socket.username == activeGames[gameID]['players'][0]) {
-                partyMessage({
-                    type: "movePlayers",
-                    score: activeGames[gameID]['score'],
-                    correct: activeGames[gameID]['questions']['results'][round]['correct_answer'],
-                    scoreToWin: activeGames[gameID]['scoreToWin']
-                }, gameID);
-                activeGames[gameID]['round']++;
-            }
-        }
-        catch (e) {
-            console.error(e);
-        }
-    });
+    // Handle player answering question
     socket.on("playerAnswer", function (data) {
         var gameID = getGameID(socket.username);
         // Ready up player
@@ -342,16 +275,36 @@ io.sockets.on('connection', function (socket) {
             }
         }
     });
+    // Check the answers at the end of a round
+    socket.on("checkAnswers", function () {
+        try {
+            var gameID = getGameID(socket.username);
+            var round = activeGames[gameID]['round'];
+            // Host sends a score update (which moves the cars)
+            if (socket.username == activeGames[gameID]['players'][0]) {
+                partyMessage({
+                    type: "movePlayers",
+                    score: activeGames[gameID]['score'],
+                    correct: activeGames[gameID]['questions']['results'][round]['correct_answer'],
+                    scoreToWin: activeGames[gameID]['scoreToWin']
+                }, gameID);
+                activeGames[gameID]['round']++;
+            }
+        }
+        catch (e) {
+            console.error(e);
+        }
+    });
+    // Send next question at end of round and clients are synced up
     socket.on("nextQuestion", function () {
         concludeRound(getGameID(socket.username));
     });
 });
 /*----------------Utility Functions-------------*/
+// Sync up all players, move players, send next question
 function concludeRound(gameID) {
     try {
-        console.log("xxx");
         var round = activeGames[gameID]['round'];
-        var clock = 0;
         var winner = checkForWinner(gameID);
         // Check for winner or round limit reached
         if (winner[0] || round == 19) {
@@ -367,17 +320,11 @@ function concludeRound(gameID) {
         // Continue/Start playing
         else if (round != 19) {
             if (activeGames[gameID]['ready'].length == 4) {
-                if (round == 0) {
-                    clock = 3; // 3 second countdown at start
-                }
-                else {
-                    clock = 10; // 10 second for questions
-                }
                 // Broadcast question to party
                 partyMessage({
                     type: "displayQuestion",
                     question: activeGames[gameID]['questions']['results'][round],
-                    time: clock
+                    time: 10
                 }, gameID);
                 // "unready" the players and wait for 4 more ready confirmations
                 resetReadyPlayers(gameID);

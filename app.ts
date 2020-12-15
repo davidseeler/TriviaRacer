@@ -151,7 +151,7 @@ io.sockets.on('connection', function(socket){
 
 	// Handle player joining a lobby
 	socket.on("joinLobby", function(data:any){
-
+		
 		// Check target lobby current capacity
 		let sizeOfLobby:number = lobbies[data.lobbyID]['players'].length;
 		if (sizeOfLobby < 4){
@@ -279,61 +279,18 @@ io.sockets.on('connection', function(socket){
 		let gameID:string = getGameID(socket.username);
 		resetReadyPlayers(gameID);
 		
-		// Host initiates client confirmation
+		// Host sends first question
 		if (socket.username == activeGames[gameID]['players'][0]){
+			// Broadcast question to party
 			partyMessage({
-				type: "clientConfirmation"
+				type: "displayQuestion",
+				question: activeGames[gameID]['questions']['results'][0],
+				time: 3
 			}, gameID);
-		}
-	});
 
-	// Sync up all players for next question (during game)
-	socket.on("playerReady", () => {
-		let gameID:string = getGameID(socket.username);
-		let round:number = activeGames[gameID]['round'];
-		let clock:number = 0;
-
-		// Mark the sending player as ready
-		activeGames[gameID]['ready'].push(socket.username);
-
-		// Last socket to ready up sends the update
-		if (socket.username == activeGames[gameID]['ready'][3]){
-			let winner:any = checkForWinner(gameID);
-
-			// Check for winner or round limit reached
-			if (winner[0] || round == 19){
-				// Broadcast game over and delete game session
-				partyMessage({
-					type: "gameOver",
-					winner: winner[1],
-					score: activeGames[gameID]['score'],
-					numberOfRounds: round
-				}, gameID);
-				delete activeGames[gameID];
-			}
-
-			// Continue/Start playing
-			else if (round != 19){
-				if (activeGames[gameID]['ready'].length == 4){
-					if (round == 0){
-                        clock = 3; // 3 second countdown at start
-                    }
-                    else{
-                        clock = 10; // 10 second for questions
-					}
-					
-					// Broadcast question to party
-					partyMessage({
-						type: "displayQuestion",
-						question: activeGames[gameID]['questions']['results'][round],
-						time: clock
-					}, gameID);
-
-					// "unready" the players and wait for 4 more ready confirmations
-					resetReadyPlayers(gameID);
-					setEmptiesAnswer(gameID);
-				}
-			}
+			// "unready" the players and wait for 4 more ready confirmations
+			resetReadyPlayers(gameID);
+			setEmptiesAnswer(gameID);
 		}
 	});
 
@@ -392,6 +349,7 @@ io.sockets.on('connection', function(socket){
 		}
 	});
 
+	// Send next question at end of round and clients are synced up
 	socket.on("nextQuestion", () => {
 		concludeRound(getGameID(socket.username));
 	});
@@ -400,10 +358,10 @@ io.sockets.on('connection', function(socket){
 
 /*----------------Utility Functions-------------*/
 
+// Sync up all players, move players, send next question
 function concludeRound(gameID:any){
 	try{
 		let round:number = activeGames[gameID]['round'];
-		let clock:number = 0;
 		let winner:any = checkForWinner(gameID);
 
 		// Check for winner or round limit reached
@@ -421,18 +379,12 @@ function concludeRound(gameID:any){
 		// Continue/Start playing
 		else if (round != 19){
 			if (activeGames[gameID]['ready'].length == 4){
-				if (round == 0){
-					clock = 3; // 3 second countdown at start
-				}
-				else{
-					clock = 10; // 10 second for questions
-				}
 			
-				// Broadcast question to party
+			// Broadcast question to party
 			partyMessage({
 				type: "displayQuestion",
 				question: activeGames[gameID]['questions']['results'][round],
-				time: clock
+				time: 10
 			}, gameID);
 
 			// "unready" the players and wait for 4 more ready confirmations

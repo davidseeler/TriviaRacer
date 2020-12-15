@@ -89,7 +89,6 @@ socket.on("broadcast", function(data){
 
 socket.on("partyMessage", function(data){
     if (data.type == "playerReady"){
-        console.log(data);
         playerReadyUp(data.player);
     }
     if (data.type == "setGameStage"){
@@ -126,9 +125,7 @@ socket.on("partyMessage", function(data){
         }
     }
     if (data.type == "playerAnswer"){
-        // If empties
         if (Array.isArray(data.playerIndex)){
-            console.log(data.playerIndex);
             for (let index in data.playerIndex){
                 $("#readyTag" + (data.playerIndex[index] + 1)).attr("style", "opacity: 100%");
             }
@@ -458,9 +455,7 @@ movePlayers = function(data){
         }
     }, 1000);
 
-    console.log(1);
     setTimeout(function(){
-        console.log(2);
         socket.emit("nextQuestion");
         $("#answer" + answerIndex).removeClass("highlight");
     }, 2000, username);   

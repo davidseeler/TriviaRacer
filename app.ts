@@ -151,7 +151,7 @@ io.sockets.on('connection', function(socket){
 
 	// Handle player joining a lobby
 	socket.on("joinLobby", function(data:any){
-		
+
 		// Check target lobby current capacity
 		let sizeOfLobby:number = lobbies[data.lobbyID]['players'].length;
 		if (sizeOfLobby < 4){
@@ -296,34 +296,39 @@ io.sockets.on('connection', function(socket){
 
 	// Handle player answering question
 	socket.on("playerAnswer", function(data:number){
-		let gameID:string = getGameID(socket.username);
+		try{
+			let gameID:string = getGameID(socket.username);
 
-		// Ready up player
-		activeGames[gameID]['ready'].push(socket.username);
+			// Ready up player
+			activeGames[gameID]['ready'].push(socket.username);
 
-		if (socket.username == activeGames[gameID]['ready'][3]){
-			partyMessage({
-				type: "allPlayersAnswered"
-			}, gameID);
-		}
-
-		// Broadcast to party that the player is ready
-		partyMessage({
-			type: "playerAnswer",
-			playerIndex: activeGames[gameID]['players'].indexOf(socket.username)
-		}, gameID);
-
-		// 9 resembles unanswered question
-		if (data != 9){
-			// Check if correct answer
-			let round:number = activeGames[gameID]['round'];
-			let correctAnswer:string = activeGames[gameID]['questions']['results'][round]['correct_answer'];
-			let response:string = activeGames[gameID]['questions']['results'][round]['shuffledAnswers'][data];
-
-			// Increment player's score if answered correctly
-			if (response == correctAnswer){
-				activeGames[gameID]['score'][getPlayerScoreIndex(socket.username)][1]++;
+			if (socket.username == activeGames[gameID]['ready'][3]){
+				partyMessage({
+					type: "allPlayersAnswered"
+				}, gameID);
 			}
+
+			// Broadcast to party that the player is ready
+			partyMessage({
+				type: "playerAnswer",
+				playerIndex: activeGames[gameID]['players'].indexOf(socket.username)
+			}, gameID);
+
+			// 9 resembles unanswered question
+			if (data != 9){
+				// Check if correct answer
+				let round:number = activeGames[gameID]['round'];
+				let correctAnswer:string = activeGames[gameID]['questions']['results'][round]['correct_answer'];
+				let response:string = activeGames[gameID]['questions']['results'][round]['shuffledAnswers'][data];
+
+				// Increment player's score if answered correctly
+				if (response == correctAnswer){
+					activeGames[gameID]['score'][getPlayerScoreIndex(socket.username)][1]++;
+				}
+			}	
+		}
+		catch (e){
+			console.error(e);
 		}
 	});
 
@@ -331,7 +336,7 @@ io.sockets.on('connection', function(socket){
 	socket.on("checkAnswers", () => {
 		try{
 			let gameID:string = getGameID(socket.username);
-			let round = activeGames[gameID]['round']; 
+			let round:any = activeGames[gameID]['round']; 
 
 			// Host sends a score update (which moves the cars)
 			if (socket.username == activeGames[gameID]['players'][0]){

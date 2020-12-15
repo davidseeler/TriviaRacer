@@ -250,29 +250,34 @@ io.sockets.on('connection', function (socket) {
     });
     // Handle player answering question
     socket.on("playerAnswer", function (data) {
-        var gameID = getGameID(socket.username);
-        // Ready up player
-        activeGames[gameID]['ready'].push(socket.username);
-        if (socket.username == activeGames[gameID]['ready'][3]) {
-            partyMessage({
-                type: "allPlayersAnswered"
-            }, gameID);
-        }
-        // Broadcast to party that the player is ready
-        partyMessage({
-            type: "playerAnswer",
-            playerIndex: activeGames[gameID]['players'].indexOf(socket.username)
-        }, gameID);
-        // 9 resembles unanswered question
-        if (data != 9) {
-            // Check if correct answer
-            var round = activeGames[gameID]['round'];
-            var correctAnswer = activeGames[gameID]['questions']['results'][round]['correct_answer'];
-            var response = activeGames[gameID]['questions']['results'][round]['shuffledAnswers'][data];
-            // Increment player's score if answered correctly
-            if (response == correctAnswer) {
-                activeGames[gameID]['score'][getPlayerScoreIndex(socket.username)][1]++;
+        try {
+            var gameID = getGameID(socket.username);
+            // Ready up player
+            activeGames[gameID]['ready'].push(socket.username);
+            if (socket.username == activeGames[gameID]['ready'][3]) {
+                partyMessage({
+                    type: "allPlayersAnswered"
+                }, gameID);
             }
+            // Broadcast to party that the player is ready
+            partyMessage({
+                type: "playerAnswer",
+                playerIndex: activeGames[gameID]['players'].indexOf(socket.username)
+            }, gameID);
+            // 9 resembles unanswered question
+            if (data != 9) {
+                // Check if correct answer
+                var round = activeGames[gameID]['round'];
+                var correctAnswer = activeGames[gameID]['questions']['results'][round]['correct_answer'];
+                var response = activeGames[gameID]['questions']['results'][round]['shuffledAnswers'][data];
+                // Increment player's score if answered correctly
+                if (response == correctAnswer) {
+                    activeGames[gameID]['score'][getPlayerScoreIndex(socket.username)][1]++;
+                }
+            }
+        }
+        catch (e) {
+            console.error(e);
         }
     });
     // Check the answers at the end of a round

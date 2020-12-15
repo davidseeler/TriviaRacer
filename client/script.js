@@ -43,6 +43,9 @@ socket.on("fetchExistingLobbies", function(data){
 });
 
 socket.on("broadcast", function(data){
+    if (data.type == "updatePlayerCount"){
+        $("#playerCount").html(data.count);
+    }
     if (data.type == "addToChat"){
         if (data.nameChange){
             updateName(data);

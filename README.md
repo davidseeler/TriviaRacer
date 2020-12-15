@@ -2,6 +2,7 @@
 https://triviaracer.herokuapp.com/
 
 NodeJS<br>
+TypeScript<br>
 Express<br>
 Socket.io<br>
 jQuery<br>

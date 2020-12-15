@@ -21,17 +21,19 @@ const SOCKET_LIST:any = {};
 const activeGames:any = {};
 const lobbies:any = {};
 const hosts:any = {};
-const names:string[] = [];
+const namesList:string[] = [];
 
-// Socket communication
+/*----------------Socket communication-------------*/
 io.sockets.on('connection', function(socket){
 	socket.id = Math.random();
 	socket.username = generateName();
 	SOCKET_LIST[socket.id] = socket;
-	fetchExistingLobbies(socket);
 
 	// Inform client
 	socket.emit("playerInfo", socket.username);
+
+	// Update connecting users with current game state
+	socket.emit("fetchExistingLobbies", lobbies);
 
 	// Post the new connection in the chat
 	broadcast({
@@ -47,8 +49,8 @@ io.sockets.on('connection', function(socket){
 	});
 
 	// On disconnnection
-	socket.on('disconnect',function(){
-		removePlayerData(socket.username);
+	socket.on('disconnect', () => {
+		deletePlayerData(socket.username);
 		delete SOCKET_LIST[socket.id];
 
 		// Post the disconnection in the chat
@@ -65,7 +67,8 @@ io.sockets.on('connection', function(socket){
 		});
 	});
 
-	socket.on("sendMsg", function(data){
+	// Broadcast messages posted in chatroom
+	socket.on("sendMsg", function(data:string){
 		broadcast({
 			type: "addToChat",
 			msg: "" + socket.username + ": " + data,
@@ -73,60 +76,67 @@ io.sockets.on('connection', function(socket){
 		});
 	});
 	
-	// On player changes name
-	socket.on("updateName", function(data){
-		if (!names.includes(data)){
-			let previousName = socket.username;
-			let isHost = false;
-			let partyID = "";
-			socket.username = data;
-			names[names.indexOf(previousName)] = data;
+	// Handles username change request
+	socket.on("updateName", function(desiredName:string){
+		if (!namesList.includes(desiredName)){
+			let isHost:boolean = false;
+			let partyID:string = "";
+			let originalName:string = socket.username;
+
+			// Set the new name
+			socket.username = desiredName;
+			namesList[namesList.indexOf(originalName)] = desiredName;
 
 			// Check if player is in a lobby
 			for (let lobby in lobbies){
-				if (lobbies[lobby]['players'].includes(previousName)){
+				if (lobbies[lobby]['players'].includes(originalName)){
 					isHost = false;
 					partyID = lobby;
-					let playerIndex = lobbies[lobby]['players'].indexOf(previousName);
-					lobbies[lobby]['players'][lobbies[lobby]['players'].indexOf(previousName)] = data;
+					let playerIndex:number = lobbies[lobby]['players'].indexOf(originalName);
+					lobbies[lobby]['players'][lobbies[lobby]['players'].indexOf(originalName)] = desiredName;
 
 					// Check if host
 					if (playerIndex == 0){
 						isHost = true;
-						hosts[data] = hosts[previousName];
-						delete hosts[previousName];
+						hosts[desiredName] = hosts[originalName];
+						delete hosts[originalName];
 					}
 				}
 			}
+			// Brodcast the name change to chat
 			broadcast({
 				type: "addToChat",
-				oldName: previousName,
-				newName: data,
+				oldName: originalName,
+				newName: socket.username,
 				isHost: isHost,
 				lobbyID: partyID,
 				nameChange: true,
-				msg: "" + previousName +" now goes by '" + data + "'.",
+				msg: "" + originalName + " now goes by '" + socket.username + "'.",
 				system: true
 			});
 		}
+		// Desired name is unavailable
 		else{
-			socket.emit("nameTaken", data);
+			socket.emit("unavailableName", socket.username);
 		}
 	});
 
-	socket.on("quit", function(data){
-		removePlayerData(data);
+	// Handle player leaving the game
+	socket.on("quit", () => {
+		deletePlayerData(socket.username);
 	});
 
-	// On player creating a new lobby
+	// Handle new lobby creation
 	socket.on("createLobby", () => {
 		removeIfInLobby(socket.username);
 		
+		// Create new entry in lobbies dictionary
 		lobbies[Object.keys(lobbies).length] = {
-			players: socket.username,
-			category: '9',
+			players: [socket.username],
+			category: '9'
 		};
 
+		// Broadcast created lobby
 		broadcast({
 			type: "createLobby",
 			lobbyID: Object.keys(lobbies).length - 1,
@@ -134,17 +144,19 @@ io.sockets.on('connection', function(socket){
 			size: 1,
 			category: lobbies[Object.keys(lobbies).length - 1]['category']
 		});
+
+		// Add creator to hosts
 		hosts[socket.username] = Object.keys(lobbies).length - 1;
 	});
 
-	// On player joining a lobby
-	socket.on("joinLobby", function(data){
+	// Handle player joining a lobby
+	socket.on("joinLobby", function(data:any){
 
 		// Check target lobby current capacity
-		let sizeOfLobby = lobbies[data.lobbyID]['players'].length;
+		let sizeOfLobby:number = lobbies[data.lobbyID]['players'].length;
 		if (sizeOfLobby < 4){
 
-			// Check if host or already in another lobby
+			// Check if the player is a host or already in another lobby
 			dissolveHostLobby(data.name);
 			removeIfInLobby(data.name);
 
@@ -169,9 +181,11 @@ io.sockets.on('connection', function(socket){
 		}
 	});
 
-	// On host changing category of lobby
-	socket.on("changeCategory", function(data){
+	// Handle host changing lobby category
+	socket.on("changeCategory", function(data:any){
 		lobbies[data.lobbyID]['category'] = data.category;
+
+		// Update clients
 		broadcast({
 			type: "changeCategory",
 			lobbyID: data.lobbyID,
@@ -179,9 +193,12 @@ io.sockets.on('connection', function(socket){
 		});
 	});
 
-	socket.on("startGame", function(data){
-		let lobbyID = hosts[data];
-		let party = [];
+	// Game setup
+	socket.on("startGame", function(data:any){
+		let lobbyID:number = hosts[data];
+
+		// Move players to a party
+		let party:string[] = [];
 		for (let i = 0; i < 4; i++){
 			if (lobbies[lobbyID]['players'][i] == null){
 				party[i] = "Empty";
@@ -191,20 +208,12 @@ io.sockets.on('connection', function(socket){
 			}
 		}
 
-		// Move players to active game session
-		activeGames[lobbyID] = {};
-		activeGames[lobbyID]['players'] = party;
-		activeGames[lobbyID]['sockets'] = getPlayerSockets(party);
-		activeGames[lobbyID]['ready'] = [];
-		activeGames[lobbyID]['round'] = 0;
-		activeGames[lobbyID]['questions'] = {};
-		activeGames[lobbyID]['score'] = [];
-		activeGames[lobbyID]['scoreToWin'] = 5;
-		createScoreArrays(lobbyID);
+		// Create active game session
+		createGameSession(lobbyID, party);
 
-		// Retrieve JSON from API and send to clients
-		let category = "category=" + lobbies[lobbyID]['category'];
-		let wait = getData(category);
+		// Prepare questions and start game
+		let category:string = "category=" + lobbies[lobbyID]['category'];
+		let wait:any = getData(category);
 		wait.then(function(result){
 			activeGames[lobbyID]['questions'] = result;
 			broadcast({
@@ -220,13 +229,20 @@ io.sockets.on('connection', function(socket){
 		dissolveHostLobby(data); 
 	});
 
-	socket.on("readyUp", () => {
-		let gameID = getGameID(socket.username);
+	// Handle player ready up at the ready up window
+	socket.on("initialReadyUp", () => {
+		let gameID:string = getGameID(socket.username);
+
+		// Mark player is ready
 		activeGames[gameID]['ready'].push(socket.username);
+
+		// Update party members
 		partyMessage({
 			type: "playerReady",
 			player: activeGames[gameID]['players'].indexOf(socket.username)
 		}, gameID);
+
+		// When all players are ready, set the game stage
 		if (activeGames[gameID]['ready'].length == 4){
 			partyMessage({
 				type: "setGameStage"
@@ -234,17 +250,23 @@ io.sockets.on('connection', function(socket){
 		}
 	});
 
-	socket.on("scoreToWinChange", function(data){
-		let gameID = getGameID(data[0]);
+	// Handles host changing the score cap
+	socket.on("scoreToWinChange", function(data:any){
+		let gameID:string = getGameID(data[0]);
 		activeGames[gameID]['scoreToWin'] = data[1];
+
+		// Update party members
 		partyMessage({
 			type: "scoreToWinChange",
 			value: data[1]
 		}, gameID);
 	});
 
-	socket.on("changeColor", function(data){
-		let gameID = getGameID(socket.username);
+	// Handles a player changing their car color
+	socket.on("changeColor", function(data:any){
+		let gameID:string = getGameID(socket.username);
+
+		// Update party members
 		partyMessage({
 			type: "colorChange",
 			car: data[0],
@@ -252,27 +274,35 @@ io.sockets.on('connection', function(socket){
 		}, gameID);
 	});
 
-	socket.on("playGame", function(data){
-		let gameID = getGameID(data);
+	// Start the game
+	socket.on("playGame", () => {
+		let gameID:string = getGameID(socket.username);
 		resetReadyPlayers(gameID);
 		
-		if (data == activeGames[gameID]['players'][0]){
+		// Host initiates client confirmation
+		if (socket.username == activeGames[gameID]['players'][0]){
 			partyMessage({
 				type: "clientConfirmation"
 			}, gameID);
 		}
 	});
 
-	socket.on("playerReady", function(data){
-		let gameID = getGameID(data);
-		let round = activeGames[gameID]['round'];
-		let clock = 0;
-		activeGames[gameID]['ready'].push(data);
-		// Last person to ready up sends the update
-		if (data == activeGames[gameID]['ready'][3]){
-			let winner = checkForWinner(gameID);
-			// Check if someone has already crossed the finish-line or if rounds are up
+	// Sync up all players for next question (during game)
+	socket.on("playerReady", () => {
+		let gameID:string = getGameID(socket.username);
+		let round:number = activeGames[gameID]['round'];
+		let clock:number = 0;
+
+		// Mark the sending player as ready
+		activeGames[gameID]['ready'].push(socket.username);
+
+		// Last socket to ready up sends the update
+		if (socket.username == activeGames[gameID]['ready'][3]){
+			let winner:any = checkForWinner(gameID);
+
+			// Check for winner or round limit reached
 			if (winner[0] || round == 19){
+				// Broadcast game over and delete game session
 				partyMessage({
 					type: "gameOver",
 					winner: winner[1],
@@ -281,40 +311,51 @@ io.sockets.on('connection', function(socket){
 				}, gameID);
 				delete activeGames[gameID];
 			}
+
+			// Continue/Start playing
 			else if (round != 19){
 				if (activeGames[gameID]['ready'].length == 4){
 					if (round == 0){
-                        clock = 3;
+                        clock = 3; // 3 second countdown at start
                     }
                     else{
-                        clock = 10;
-                    }
+                        clock = 10; // 10 second for questions
+					}
+					
+					// Broadcast question to party
 					partyMessage({
 						type: "displayQuestion",
 						question: activeGames[gameID]['questions']['results'][round],
 						time: clock
 					}, gameID);
+
+					// "unready" the players and wait for 4 more ready confirmations
 					resetReadyPlayers(gameID);
 				}
 			}
 		}
 	});
-			
-	socket.on("answer", function(data){	
-		let gameID = getGameID(data[0]);
-		let round = activeGames[gameID]['round'];
-		let correctAnswer = activeGames[gameID]['questions']['results'][round]['correct_answer'];
-		let response = activeGames[gameID]['questions']['results'][round]['shuffledAnswers'][data[1]];
+	
+	// Handle player answering a question
+	socket.on("answer", function(data:any){	
+		let gameID:string = getGameID(data[0]);
+		let round:number = activeGames[gameID]['round'];
+		let correctAnswer:string = activeGames[gameID]['questions']['results'][round]['correct_answer'];
+		let response:string = activeGames[gameID]['questions']['results'][round]['shuffledAnswers'][data[1]];
 
+		// Increment player's score if answered correctly
 		if (response == correctAnswer){
 			activeGames[gameID]['score'][getPlayerScoreIndex(data[0])][1]++;
 		}
 	});
 
-	socket.on("checkAnswers", function(data){
-		let gameID = getGameID(data);
-		let round = activeGames[gameID]['round'];
-		if (data == activeGames[gameID]['players'][0]){
+	// Check the answers at the end of a round
+	socket.on("checkAnswers", () => {
+		let gameID:string = getGameID(socket.username);
+		let round:number = activeGames[gameID]['round'];
+
+		// Host sends a score update (which moves the cars)
+		if (socket.username == activeGames[gameID]['players'][0]){
 			partyMessage({
 				type: "movePlayers",
 				score: activeGames[gameID]['score'],
@@ -327,8 +368,10 @@ io.sockets.on('connection', function(socket){
 
 });
 
+/*----------------Utility Functions-------------*/
+
 // Message to be sent to all clients
-function broadcast(msg){
+function broadcast(msg:any){
 	for(let i in SOCKET_LIST){
 		let socket = SOCKET_LIST[i];
 		socket.emit("broadcast", msg);
@@ -336,7 +379,7 @@ function broadcast(msg){
 }
 
 // Message to be sent to players in specified party
-function partyMessage(msg, gameID){
+function partyMessage(msg:any, gameID:string){
 	for(let socket in activeGames[gameID]['sockets']){
 		if (activeGames[gameID]['sockets'][socket] != "Empty"){
 			activeGames[gameID]['sockets'][socket].emit("partyMessage", msg);
@@ -344,24 +387,22 @@ function partyMessage(msg, gameID){
 	}
 }
 
+// Generates random unique username
 function generateName(){
-	let name = "Player" + Math.floor(Math.random() * 1000)
-	while (names.includes(name)){
-		name = "Player" + Math.floor(Math.random() * 1000);
+	let username = "Player" + Math.floor(Math.random() * 1000)
+	while (namesList.includes(username)){
+		username = "Player" + Math.floor(Math.random() * 1000);
 	}
-	names.push(name);
-	return name;
-}
-
-// Update users who just connected
-function fetchExistingLobbies(socket){
-	socket.emit("fetchExistingLobbies", lobbies);
+	namesList.push(username);
+	return username;
 }
 
 // Remove disconnected player's data
-function removePlayerData(name){
+function deletePlayerData(username:string){
+
+	// Remove if in lobby
 	for (let lobby in lobbies){
-		if (lobbies[lobby]['players'].includes(name)){
+		if (lobbies[lobby]['players'].includes(username)){
 			delete lobbies[lobby];
 			broadcast({
 				type: "disconnection",
@@ -370,44 +411,46 @@ function removePlayerData(name){
 			break;
 		}
 	}
+	// Remove if in game
 	for (let game in activeGames){
-		if (activeGames[game]['players'].includes(name)){
-			let winner = checkForWinner(game);
+		if (activeGames[game]['players'].includes(username)){
 			partyMessage({
 				type: "disconnection",
-				disconnected: name
+				disconnected: username
 			}, game);
 			delete activeGames[game];
 			break;
 		}
 	}
-	if (hosts[name] != null){
-		delete hosts[name];
+	// Remove from hosts
+	if (hosts[username] != null){
+		delete hosts[username];
 	}
-	if (names.indexOf(name) != null){
-		names.splice(names.indexOf(name), 1);
+	// Remove from names list
+	if (namesList.indexOf(username) != null){
+		namesList.splice(namesList.indexOf(username), 1);
 	}
 }
 
-// Check if player is a host, remove his/her lobby
-function dissolveHostLobby(name){
-	if (hosts[name] != null){
+// Check if player is a host and remove lobby
+function dissolveHostLobby(username:string){
+	if (hosts[username] != null){
 		broadcast({
 			type: "deleteLobby",
-			name: name,
-			lobbyID: hosts[name]
+			name: username,
+			lobbyID: hosts[username]
 		});
-		delete lobbies[hosts[name]];
-		delete hosts[name];	
+		delete lobbies[hosts[username]];
+		delete hosts[username];	
 	}
 }
 
 // Check and remove if player is already in a lobby
-function removeIfInLobby(name){
+function removeIfInLobby(username:string){
 	for (let lobby in lobbies){
-		if ((lobbies[lobby]['players']).includes(name)){
+		if ((lobbies[lobby]['players']).includes(username)){
 			for (let i = 0; i < (lobbies[lobby]['players']).length; i++){
-				if ((lobbies[lobby]['players'][i]) == name){
+				if ((lobbies[lobby]['players'][i]) == username){
 					lobbies[lobby]['players'] = decrementLobby(lobbies[lobby]['players'], i);
 					broadcast({
 						type: "playerHop",
@@ -421,11 +464,13 @@ function removeIfInLobby(name){
 	}
 }
 
-// Adjust lobby array for the decrement
-function decrementLobby(lobby, indexToRemove){
+// Adjust lobby array on decrement
+function decrementLobby(lobby:any, indexToRemove:number){
+	// Size 2
 	if (lobby.length == 2){
 		lobby = [lobby[0]];
 	}
+	// Size 3
 	else if (lobby.length == 3){
 		if (indexToRemove == 1){
 			lobby = [lobby[0], lobby[2]];
@@ -434,6 +479,7 @@ function decrementLobby(lobby, indexToRemove){
 			lobby = [lobby[0], lobby[1]];
 		}
 	}
+	// Size 4
 	else if (lobby.length == 4){
 		if (indexToRemove == 1){
 			lobby = [lobby[0], lobby[2], lobby[3]];
@@ -449,13 +495,13 @@ function decrementLobby(lobby, indexToRemove){
 }
 
 // Call Open Trivia Database API to retrieve question data
-function getData(category){
+function getData(category:string){
     return node_fetch("https://opentdb.com/api.php?amount=21&" + category + "&type=multiple")
 		.then(res => res.json());
 }
 
 // Return host of specificed lobby
-function getHostOfLobby(lobby){
+function getHostOfLobby(lobby:any){
 	for (let host in hosts){
 		if (hosts[host] == lobby){
 			return host;
@@ -463,15 +509,30 @@ function getHostOfLobby(lobby){
 	}
 }
 
-function getGameID(name){
+// Find and return ID of game that calling client is in
+function getGameID(username:string){
 	for (let game in activeGames){
-		if (activeGames[game]['players'].includes(name)){
+		if (activeGames[game]['players'].includes(username)){
 			return game;
 		}
 	}
 }
 
-function readyUpEmpties(gameID){
+// Create a new active game session
+function createGameSession(lobbyID:number, party:string[]){
+	activeGames[lobbyID] = {};
+	activeGames[lobbyID]['players'] = party;
+	activeGames[lobbyID]['sockets'] = getPlayerSockets(party);
+	activeGames[lobbyID]['ready'] = [];
+	activeGames[lobbyID]['round'] = 0;
+	activeGames[lobbyID]['questions'] = {};
+	activeGames[lobbyID]['score'] = [];
+	activeGames[lobbyID]['scoreToWin'] = 5;
+	createScoreArrays(lobbyID);
+}
+
+// Handles empty slots in an active game session
+function readyUpEmpties(gameID:number){
 	for (let i = 0; i < 4; i++){
 		if (activeGames[gameID]['players'][i] == "Empty"){
 			activeGames[gameID]['ready'].push("Empty");
@@ -479,8 +540,9 @@ function readyUpEmpties(gameID){
 	}
 }
 
-function getPlayerSockets(party){
-	let sockets = [];
+// Return an array containing a party's members' sockets
+function getPlayerSockets(party:string[]){
+	let sockets:any[] = [];
 	for (let player in party){
 		if (party[player] == "Empty"){
 			sockets.push("Empty");
@@ -488,7 +550,7 @@ function getPlayerSockets(party){
 		else{
 			for(let i in SOCKET_LIST){
 				let socket = SOCKET_LIST[i];
-				if (socket.number == party[player]){
+				if (socket.username == party[player]){
 					sockets.push(socket);
 				}
 			}
@@ -497,34 +559,43 @@ function getPlayerSockets(party){
 	return sockets;
 }
 
-// Shuffle answer choices for all questions
-function shuffleAnswers(gameID){
+// Shuffle answer choices for all retrieved questions
+function shuffleAnswers(gameID:number){
+	// Iterate through each question retrieved
 	for (let question in activeGames[gameID]['questions']['results']){
-		let arr = activeGames[gameID]['questions']['results'][question]['incorrect_answers'];
+
+		// Combine incorrect and correct answers into one array	
+		let arr:string[] = activeGames[gameID]['questions']['results'][question]['incorrect_answers'];
 		arr[3] = activeGames[gameID]['questions']['results'][question]['correct_answer'];
+
+		// Shuffle
 		for (let i = arr.length - 1; i > 0; i--) {
-			let j = Math.floor(Math.random() * (i + 1));
-			let temp = arr[i];
+			let j:number = Math.floor(Math.random() * (i + 1));
+			let temp:string = arr[i];
 			arr[i] = arr[j];
 			arr[j] = temp;
 		}
+
 		activeGames[gameID]['questions']['results'][question]['shuffledAnswers'] = arr;
 	}
 }
 
-function resetReadyPlayers(gameID){
+// "unready up" the players in an active game session
+function resetReadyPlayers(gameID:any){
 	delete activeGames[gameID]['ready'];
 	activeGames[gameID]['ready'] = [];
 	readyUpEmpties(gameID);
 }
 
-function createScoreArrays(gameID){
+// Create matrix to store player scores
+function createScoreArrays(gameID:any){
 	for (let i = 0; i < 4; i++){
 		activeGames[gameID]['score'][i] = [activeGames[gameID]['players'][i], 0];
 	}
 }
 
-function getPlayerScoreIndex(player){
+// Returns the index of the score for a player
+function getPlayerScoreIndex(player:any){
 	let gameID = getGameID(player);
 	for (let i = 0; i < 4; i++){
 		if (player == activeGames[gameID]['score'][i][0]){
@@ -533,7 +604,8 @@ function getPlayerScoreIndex(player){
 	}
 }
 
-function checkForWinner(gameID){
+// Checks the scoreboards for a winner
+function checkForWinner(gameID:any){
 	for (let i = 0; i < 4; i++){
 		if (activeGames[gameID]['score'][i][1] == activeGames[gameID]['scoreToWin']){
 			return [true, activeGames[gameID]['score'][i][0]];

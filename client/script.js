@@ -1,5 +1,5 @@
 let socket = io();
-let name = "Player";
+let username = "Player";
 let playerNum = "";
 let party = "";
 let timeRemaining = 0;
@@ -11,11 +11,11 @@ document.getElementById("chatForm").onsubmit = function(e){
 }
 
 socket.on("playerInfo", function(data){
-    name = data;
+    username = data;
     $("#nameInput").val(data);
 });
 
-socket.on("nameTaken", function(data){
+socket.on("unavailableName", function(data){
     $("#nameSpinner").hide();
     $("#nameTaken").html("'" + data + "' is unavailable.")
     $("#nameInput").attr("style", "border: 1px solid red");
@@ -77,7 +77,7 @@ socket.on("broadcast", function(data){
         lockLobby(data.lobbyID);
     }
     if (data.type == "startGame"){
-        if (data.party.includes(name)){
+        if (data.party.includes(username)){
             startGame(data);
         }
     }
@@ -88,11 +88,12 @@ socket.on("broadcast", function(data){
 
 socket.on("partyMessage", function(data){
     if (data.type == "playerReady"){
+        console.log(data);
         playerReadyUp(data.player);
     }
     if (data.type == "setGameStage"){
         $("#readyUpWindow").attr("style", "display: none");
-        socket.emit("playGame", name);
+        socket.emit("playGame", username);
     }
     if (data.type == "scoreToWinChange"){
         updateScoreToWin(data.value);
@@ -101,7 +102,7 @@ socket.on("partyMessage", function(data){
         colorUpdate(data);
     }
     if (data.type == "clientConfirmation"){
-        socket.emit("playerReady", name);
+        socket.emit("playerReady", username);
     }
     if (data.type == "displayQuestion"){
         if (data.time == 3 ? startCountDown(data) : displayQuestion(data));
@@ -111,7 +112,7 @@ socket.on("partyMessage", function(data){
     }
     if (data.type == "gameOver"){
         setResults(data);
-        if (name == data.winner){
+        if (username == data.winner){
             winnerAnimation(data);
         }
         else{
@@ -119,7 +120,7 @@ socket.on("partyMessage", function(data){
         }
     }
     if (data.type == "disconnection"){
-        if (data.disconnected != name){
+        if (data.disconnected != username){
             disconnection(data.disconnected);
         }
     }
@@ -149,8 +150,8 @@ updateName = function(data){
     if (data.isHost){
         $("#host" + data.lobbyID).html(data.newName);
     }
-    if (name == data.oldName){
-        name = data.newName;
+    if (username == data.oldName){
+        username = data.newName;
         $("#nameSpinner").hide();
         $("#nameChanged").show();
         $("#nameChanged").show("slow").delay(1250).hide("slow");
@@ -158,7 +159,7 @@ updateName = function(data){
 }
 
 createLobbyMsg = function(){
-    socket.emit("createLobby", name);
+    socket.emit("createLobby", username);
 }
 
 createLobby = function(lobbyID, nameFromServer, size, category){
@@ -175,7 +176,7 @@ createLobby = function(lobbyID, nameFromServer, size, category){
     "" + categoryOptions + "</td><td>" + joinButton + "</td></tr>");
     table.append(newLobby);
     $("#category" + lobbyID).val(category);
-    if (nameFromServer != name){
+    if (nameFromServer != username){
         $("#category" + lobbyID).attr("disabled", true);
     }
     else{
@@ -188,7 +189,7 @@ createLobby = function(lobbyID, nameFromServer, size, category){
 joinLobby = function(value){
     socket.emit("joinLobby", {
         lobbyID: value,
-        name: name
+        name: username
     });
     $("#joinButton" + value).attr("disabled", true);
     $("#startButton").attr("disabled", true);
@@ -222,7 +223,7 @@ colorUpdate = function(data){
 
 playerHop = function(lobbyID, size, host){
     $("#lobbyCount" + lobbyID).html(size + "/4");
-    if (name != host){
+    if (username != host){
         $("#joinButton" + lobbyID).removeAttr("disabled");
     }
 }
@@ -232,7 +233,7 @@ lockLobby = function(lobbyID){
 }
 
 startGameMsg = function(){
-    socket.emit("startGame", name);
+    socket.emit("startGame", username);
 }
 
 startGame = function(data){
@@ -254,7 +255,7 @@ assignPlayers = function(party){
     }
 
     // Assign ready up permissions
-    switch(name){
+    switch(username){
         case party[0]: 
             $("#p1ReadyUp, #scoreToWin, #increment, #decrement, #color1").removeAttr("disabled");
             $("#p1ReadyUp").addClass("rightReadyUp");
@@ -297,7 +298,7 @@ assignPlayers = function(party){
 }
 
 readyUp = function(){
-    socket.emit("readyUp", name);
+    socket.emit("initialReadyUp", username);
 }
 
 playerReadyUp = function(playerNumber){
@@ -318,7 +319,7 @@ loadHomePage = function(data){
     $("#homePage").attr("style", "display: block");
 
     if (data == "quit"){
-        socket.emit("quit", name);
+        socket.emit("quit", username);
     }
 
     resetGameState();
@@ -384,7 +385,7 @@ startTimer = function(time){
             $("#stopwatch").attr("style", "display: none");
             $("#stopwatch").html(10);
             lockAnswers(true);
-            socket.emit("checkAnswers", name);
+            socket.emit("checkAnswers", username);
         }
     },1000);
     
@@ -397,7 +398,7 @@ setAnswerChoices = function(data){
 };                
 
 answerMsg = function(value){
-    socket.emit("answer", [name, value]);
+    socket.emit("answer", [username, value]);
     lockAnswers(true);
 }
 
@@ -425,9 +426,9 @@ movePlayers = function(data){
     }, 1000);
 
     setTimeout(function(){
-        socket.emit("playerReady", name);
+        socket.emit("playerReady", username);
         $("#answer" + answerIndex).removeClass("highlight");
-    }, 2000, name);   
+    }, 2000, username);   
 }
 
 lockAnswers = function(bool){
@@ -455,14 +456,14 @@ revealAnswer = function(data){
 increment = function(){
     if ($("#scoreToWin").val() < 10){
         $("#scoreToWin").get(0).value++;
-        socket.emit("scoreToWinChange", [name, $("#scoreToWin").val()]);
+        socket.emit("scoreToWinChange", [username, $("#scoreToWin").val()]);
     }
 }
 
 decrement = function(){
     if ($("#scoreToWin").val() > 1){
         $("#scoreToWin").get(0).value--;
-        socket.emit("scoreToWinChange", [name, $("#scoreToWin").val()]);
+        socket.emit("scoreToWinChange", [username, $("#scoreToWin").val()]);
     }
 }
 

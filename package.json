@@ -23,6 +23,7 @@
     "express": "^4.17.1",
     "node-fetch": "^2.6.1",
     "normalize.css": "^8.0.1",
-    "socket.io": "^3.0.4"
+    "socket.io": "^3.0.4",
+    "typescript": "^4.1.3"
   }
 }

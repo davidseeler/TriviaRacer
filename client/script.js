@@ -3,6 +3,7 @@ let username = "Player";
 let playerNum = "";
 let party = "";
 let timeRemaining = 0;
+let timer = "";
 
 document.getElementById("chatForm").onsubmit = function(e){
     e.preventDefault();
@@ -123,6 +124,21 @@ socket.on("partyMessage", function(data){
         if (data.disconnected != username){
             disconnection(data.disconnected);
         }
+    }
+    if (data.type == "playerAnswer"){
+        // If empties
+        if (Array.isArray(data.playerIndex)){
+            console.log(data.playerIndex);
+            for (let index in data.playerIndex){
+                $("#readyTag" + (data.playerIndex[index] + 1)).attr("style", "opacity: 100%");
+            }
+        }
+        else{
+            $("#readyTag" + (data.playerIndex + 1)).attr("style", "opacity: 100%");
+        }
+    }
+    if (data.type == "allPlayersAnswered"){
+        stopTheClock();
     }
 });
 
@@ -373,7 +389,7 @@ startCountDown = function(data){
 
 startTimer = function(time){
     $("#stopwatch").attr("style", "display: block");
-    let downloadTimer = setInterval(function(){
+    timer = setInterval(function(){
         $("#stopwatch").html(time);
         time--;
         if (time <= 2){
@@ -381,15 +397,27 @@ startTimer = function(time){
         }
         if(time <= -2){
             $("#stopwatch").removeClass("blink_me");
-            clearInterval(downloadTimer);
+            clearInterval(timer);
             $("#stopwatch").attr("style", "display: none");
             $("#stopwatch").html(10);
-            lockAnswers(true);
+            if (!($("#answer1").attr("disabled"))){
+                socket.emit("playerAnswer", 9);
+                lockAnswers(true);
+            }
             socket.emit("checkAnswers", username);
         }
     },1000);
     
 };
+
+function stopTheClock(){
+    clearInterval(timer);
+    $("#stopwatch").removeClass("blink_me");
+    $("#stopwatch").attr("style", "display: none");
+    $("#stopwatch").html(10);
+    lockAnswers(true);
+    socket.emit("checkAnswers", username);
+}
 
 setAnswerChoices = function(data){
     for (let i = 0; i < 4; i++){
@@ -398,7 +426,8 @@ setAnswerChoices = function(data){
 };                
 
 answerMsg = function(value){
-    socket.emit("answer", [username, value]);
+    socket.emit("playerAnswer", value);
+    $("readyTag1").attr("style", "opacity: 100%");
     lockAnswers(true);
 }
 
@@ -412,6 +441,10 @@ displayQuestion = function(data){
 }
 
 movePlayers = function(data){
+    for (let i = 1; i < 5; i++){
+        $("#readyTag" + i).attr("style", "opacity: 0%");        
+    }
+
     $("#question").attr("style", "dispay: none");
     $("#carList, #finishLine, #playerList").attr("style",  "filter: blur(0)");
     let sizeFactor = (document.getElementById("carList").clientHeight) / parseInt(data.scoreToWin);
@@ -425,8 +458,10 @@ movePlayers = function(data){
         }
     }, 1000);
 
+    console.log(1);
     setTimeout(function(){
-        socket.emit("playerReady", username);
+        console.log(2);
+        socket.emit("nextQuestion");
         $("#answer" + answerIndex).removeClass("highlight");
     }, 2000, username);   
 }
@@ -515,7 +550,7 @@ loserAnimation = function(data){
 
 disconnection = function(player){
     loadHomePage();
-    $("#modal-text").html("'" + player + "' left the game.");
+    $("#modal-text").html("" + player + " left the game.");
     $("#myModal").modal();
 }
 

@@ -19,7 +19,7 @@ var activeGames = {};
 var lobbies = {};
 var hosts = {};
 var namesList = [];
-/*----------------Socket communication-------------*/
+/*----------------Socket communication--------------*/
 io.sockets.on('connection', function (socket) {
     socket.id = Math.random();
     socket.username = generateName();
@@ -101,7 +101,7 @@ io.sockets.on('connection', function (socket) {
         }
         // Desired name is unavailable
         else {
-            socket.emit("unavailableName", socket.username);
+            socket.emit("unavailableName", desiredName);
         }
     });
     // Handle player leaving the game
@@ -280,6 +280,7 @@ io.sockets.on('connection', function (socket) {
                     }, gameID);
                     // "unready" the players and wait for 4 more ready confirmations
                     resetReadyPlayers(gameID);
+                    setEmptiesAnswer(gameID);
                 }
             }
         }
@@ -297,21 +298,97 @@ io.sockets.on('connection', function (socket) {
     });
     // Check the answers at the end of a round
     socket.on("checkAnswers", function () {
-        var gameID = getGameID(socket.username);
-        var round = activeGames[gameID]['round'];
-        // Host sends a score update (which moves the cars)
-        if (socket.username == activeGames[gameID]['players'][0]) {
-            partyMessage({
-                type: "movePlayers",
-                score: activeGames[gameID]['score'],
-                correct: activeGames[gameID]['questions']['results'][round]['correct_answer'],
-                scoreToWin: activeGames[gameID]['scoreToWin']
-            }, gameID);
-            activeGames[gameID]['round']++;
+        try {
+            var gameID = getGameID(socket.username);
+            var round = activeGames[gameID]['round'];
+            // Host sends a score update (which moves the cars)
+            if (socket.username == activeGames[gameID]['players'][0]) {
+                partyMessage({
+                    type: "movePlayers",
+                    score: activeGames[gameID]['score'],
+                    correct: activeGames[gameID]['questions']['results'][round]['correct_answer'],
+                    scoreToWin: activeGames[gameID]['scoreToWin']
+                }, gameID);
+                activeGames[gameID]['round']++;
+            }
         }
+        catch (e) {
+            console.error(e);
+        }
+    });
+    socket.on("playerAnswer", function (data) {
+        var gameID = getGameID(socket.username);
+        // Ready up player
+        activeGames[gameID]['ready'].push(socket.username);
+        if (socket.username == activeGames[gameID]['ready'][3]) {
+            partyMessage({
+                type: "allPlayersAnswered"
+            }, gameID);
+        }
+        // Broadcast to party that the player is ready
+        partyMessage({
+            type: "playerAnswer",
+            playerIndex: activeGames[gameID]['players'].indexOf(socket.username)
+        }, gameID);
+        // 9 resembles unanswered question
+        if (data != 9) {
+            // Check if correct answer
+            var round = activeGames[gameID]['round'];
+            var correctAnswer = activeGames[gameID]['questions']['results'][round]['correct_answer'];
+            var response = activeGames[gameID]['questions']['results'][round]['shuffledAnswers'][data];
+            // Increment player's score if answered correctly
+            if (response == correctAnswer) {
+                activeGames[gameID]['score'][getPlayerScoreIndex(socket.username)][1]++;
+            }
+        }
+    });
+    socket.on("nextQuestion", function () {
+        concludeRound(getGameID(socket.username));
     });
 });
 /*----------------Utility Functions-------------*/
+function concludeRound(gameID) {
+    try {
+        console.log("xxx");
+        var round = activeGames[gameID]['round'];
+        var clock = 0;
+        var winner = checkForWinner(gameID);
+        // Check for winner or round limit reached
+        if (winner[0] || round == 19) {
+            // Broadcast game over and delete game session
+            partyMessage({
+                type: "gameOver",
+                winner: winner[1],
+                score: activeGames[gameID]['score'],
+                numberOfRounds: round
+            }, gameID);
+            delete activeGames[gameID];
+        }
+        // Continue/Start playing
+        else if (round != 19) {
+            if (activeGames[gameID]['ready'].length == 4) {
+                if (round == 0) {
+                    clock = 3; // 3 second countdown at start
+                }
+                else {
+                    clock = 10; // 10 second for questions
+                }
+                // Broadcast question to party
+                partyMessage({
+                    type: "displayQuestion",
+                    question: activeGames[gameID]['questions']['results'][round],
+                    time: clock
+                }, gameID);
+                // "unready" the players and wait for 4 more ready confirmations
+                resetReadyPlayers(gameID);
+                setEmptiesAnswer(gameID);
+            }
+        }
+    }
+    catch (e) {
+        console.error(e);
+    }
+}
 // Message to be sent to all clients
 function broadcast(msg) {
     for (var i in SOCKET_LIST) {
@@ -463,10 +540,27 @@ function createGameSession(lobbyID, party) {
 }
 // Handles empty slots in an active game session
 function readyUpEmpties(gameID) {
+    // Ready up empty players
     for (var i = 0; i < 4; i++) {
         if (activeGames[gameID]['players'][i] == "Empty") {
             activeGames[gameID]['ready'].push("Empty");
         }
+    }
+}
+// "Answers" the question and sets the "ready" tag for empty players
+function setEmptiesAnswer(gameID) {
+    var emptyIndices = [];
+    for (var i = 0; i < 4; i++) {
+        if (activeGames[gameID]['players'][i] == "Empty") {
+            emptyIndices.push(i);
+        }
+    }
+    // If there are empties in the party
+    if (emptyIndices.length != 0) {
+        partyMessage({
+            type: "playerAnswer",
+            playerIndex: emptyIndices
+        }, gameID);
     }
 }
 // Return an array containing a party's members' sockets

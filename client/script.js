@@ -1,37 +1,25 @@
+// Socket used to communicate with server
 let socket = io();
-let username = "Player";
-let playerNum = "";
+
+// Player variables
+let username = "";
 let party = "";
-let timeRemaining = 0;
 let timer = "";
 
-document.getElementById("chatForm").onsubmit = function(e){
-    e.preventDefault();
-    socket.emit("sendMsg", $("#chatMessage").val());
-    $("#chatMessage").val("");
-}
+/*-----------------------Server Communication-----------------------*/
 
+// Retrieve username from server
 socket.on("playerInfo", function(data){
     username = data;
     $("#nameInput").val(data);
 });
 
+// Display an error message if name change request fails
 socket.on("unavailableName", function(data){
-    $("#nameSpinner").hide();
-    $("#nameTaken").html("'" + data + "' is unavailable.")
-    $("#nameInput").attr("style", "border: 1px solid red");
-    $("#nameTaken").attr("style", "display: block");
-    $("#nameInput").click(function(){
-        $("#nameInput").val("");
-        $("#nameInput").attr("style", "border: none");
-        $("#nameTaken").attr("style", "display: none");
-    });
+    unavailableNameErr(data);
 });
 
-socket.on('count', function(data){
-    $("#playerCount").html(data);
-});
-
+// Fetch current game state
 socket.on("fetchExistingLobbies", function(data){
     let lobbies = data;
     for (let lobby in lobbies){
@@ -43,103 +31,105 @@ socket.on("fetchExistingLobbies", function(data){
     }  
 });
 
+// Broadcasts from server to all clients
 socket.on("broadcast", function(data){
-    if (data.type == "updatePlayerCount"){
-        $("#playerCount").html(data.count);
-    }
-    if (data.type == "addToChat"){
-        if (data.nameChange){
-            updateName(data);
-        }
-        if (data.system){
-            data.msg = "<span class='systemMsg'>SYSTEM: </span>" + data.msg;
-        }
-        $("#chatContent").append("<div>" + data.msg + "</div>");
-        let y = document.getElementById("chatContent").scrollHeight; 
-        document.getElementById("chatContent").scrollTo(0, y);
-    }
-    if (data.type == "createLobby"){
-        createLobby(data.lobbyID, data.name, data.size, data.category);
-    }
-    if (data.type == "updateLobbies"){
-        updateLobbyCount(data.lobbyID, data.size);
-    }
-    if (data.type == "changeCategory"){
-        updateLobbyCategory(data.lobbyID, data.category);
-    }
-    if (data.type == "deleteLobby"){
-        $("#lobbyRow" + data.lobbyID).remove();
-        $("#createLobbyButton").removeAttr("disabled");
-    }
-    if (data.type == "playerHop"){
-        playerHop(data.lobbyID, data.size, data.host);
-    }
-    if (data.type == "lobbyFull"){
-        lockLobby(data.lobbyID);
-    }
-    if (data.type == "startGame"){
-        if (data.party.includes(username)){
-            startGame(data);
-        }
-    }
-    if (data.type == "disconnection"){
-        $("#lobbyRow" + data.lobbyID).remove();
-    }
-});
-
-socket.on("partyMessage", function(data){
-    if (data.type == "playerReady"){
-        playerReadyUp(data.player);
-    }
-    if (data.type == "setGameStage"){
-        $("#readyUpWindow").attr("style", "display: none");
-        socket.emit("playGame", username);
-    }
-    if (data.type == "scoreToWinChange"){
-        updateScoreToWin(data.value);
-    }
-    if (data.type == "colorChange"){
-        colorUpdate(data);
-    }
-    if (data.type == "clientConfirmation"){
-        socket.emit("playerReady", username);
-    }
-    if (data.type == "displayQuestion"){
-        if (data.time == 3 ? startCountDown(data) : displayQuestion(data));
-    }
-    if (data.type == "movePlayers"){
-        movePlayers(data);
-    }
-    if (data.type == "gameOver"){
-        setResults(data);
-        if (username == data.winner){
-            winnerAnimation(data);
-        }
-        else{
-            loserAnimation(data);
-        }
-    }
-    if (data.type == "disconnection"){
-        if (data.disconnected != username){
-            disconnection(data.disconnected);
-        }
-    }
-    if (data.type == "playerAnswer"){
-        if (Array.isArray(data.playerIndex)){
-            for (let index in data.playerIndex){
-                $("#readyTag" + (data.playerIndex[index] + 1)).attr("style", "opacity: 100%");
+    switch (data.type){
+        case "updatePlayerCount":
+            $("#playerCount").html(data.count);
+            break;
+        case "addToChat":
+            addToChat(data);
+            break;
+        case "createLobby":
+            createLobby(data.lobbyID, data.name, data.size, data.category);
+            break;
+        case "updateLobbies":
+            updateLobbyCount(data.lobbyID, data.size);
+            break;
+        case "changeCategory":
+            updateLobbyCategory(data.lobbyID, data.category);
+            break;
+        case "deleteLobby":
+            deleteLobby(data);
+            break;
+        case "playerHop":
+            playerHop(data.lobbyID, data.size, data.host);
+            break;
+        case "lobbyFull":
+            lockLobby(data.lobbyID);
+            break;
+        case "startGame":
+            if (data.party.includes(username)){
+                startGame(data);
             }
-        }
-        else{
-            $("#readyTag" + (data.playerIndex + 1)).attr("style", "opacity: 100%");
-        }
-    }
-    if (data.type == "allPlayersAnswered"){
-        stopTheClock();
+            break;
+        case "disconnection":
+            $("#lobbyRow" + data.lobbyID).remove();
     }
 });
 
-sendName = function(){
+// Broadcasts from server to all members in party
+socket.on("partyMessage", function(data){
+    switch (data.type){
+        case "playerReady":
+            playerReadyUp(data.player);
+            break;
+        case "setGameStage":
+            playGame();
+            break;
+        case "scoreToWinChange":
+            updateScoreToWin(data.value);
+            break;
+        case "colorChange":
+            colorUpdate(data);
+            break;
+        case "displayQuestion":
+            if (data.time == 3 ? startCountDown(data) : displayQuestion(data));
+            break;
+        case "playerAnswer":
+            playerAnswer(data);
+            break;
+        case "allPlayersAnswered":
+            stopTheClock();
+            break;
+        case "movePlayers":
+            movePlayers(data);
+            break;
+        case "gameover":
+            gameover(data);
+            break;
+        case "disconnection":
+            if (data.disconnected != username){
+                disconnection(data.disconnected);
+            }
+    }
+});
+
+/*--------------------------Home page functions----------------------------*/
+
+// Sends entered chat message to server
+document.getElementById("chatForm").onsubmit = function(e){
+    e.preventDefault();
+    socket.emit("sendMsg", $("#chatMessage").val());
+    $("#chatMessage").val("");
+}
+
+// Posts messages from server and other clients to chat
+function addToChat(data){
+    if (data.nameChange){
+        updateName(data);
+    }
+    if (data.system){
+        data.msg = "<span class='systemMsg'>SYSTEM: </span>" + data.msg;
+    }
+    $("#chatContent").append("<div>" + data.msg + "</div>");
+    let y = document.getElementById("chatContent").scrollHeight; 
+    document.getElementById("chatContent").scrollTo(0, y);
+}
+
+// Send name change request to server
+function sendName(){
+    // Display an error message if desired name is greater than 9 characters
     if ($("#nameInput").val().length > 9){
         $("#nameTaken").html("Name must be less than 10 characters.")
         $("#nameInput").attr("style", "border: 1px solid red");
@@ -150,6 +140,7 @@ sendName = function(){
             $("#nameTaken").attr("style", "display: none");
         });
     }
+    // Wait for server response
     else{
         $("#nameSpinner").show();
         let desiredName = $("#nameInput").val();
@@ -159,7 +150,8 @@ sendName = function(){
     }
 }
 
-updateName = function(data){
+// Update all player changed names
+function updateName(data){
     if (data.isHost){
         $("#host" + data.lobbyID).html(data.newName);
     }
@@ -171,11 +163,38 @@ updateName = function(data){
     }
 }
 
-createLobbyMsg = function(){
+// Displays an error message when a name request fails
+function unavailableNameErr(data){
+    $("#nameSpinner").hide();
+    $("#nameTaken").html("'" + data + "' is unavailable.")
+    $("#nameInput").attr("style", "border: 1px solid red");
+    $("#nameTaken").attr("style", "display: block");
+    $("#nameInput").click(function(){
+        $("#nameInput").val("");
+        $("#nameInput").attr("style", "border: none");
+        $("#nameTaken").attr("style", "display: none");
+    });
+}
+
+// Displays "ready" over a player who answers
+function playerAnswer(data){
+    if (Array.isArray(data.playerIndex)){
+        for (let index in data.playerIndex){
+            $("#readyTag" + (data.playerIndex[index] + 1)).attr("style", "opacity: 100%");
+        }
+    }
+    else{
+        $("#readyTag" + (data.playerIndex + 1)).attr("style", "opacity: 100%");
+    }
+}
+
+// Create New Lobby button handler - sends request to server
+function createLobbyMsg(){
     socket.emit("createLobby", username);
 }
 
-createLobby = function(lobbyID, nameFromServer, size, category){
+// Creates a new lobby on approval from server
+function createLobby(lobbyID, nameFromServer, size, category){
     let table = $("#lobbyTable");
     let joinButton = "<button value='" + lobbyID + "' onclick='joinLobby(value)' id='joinButton" + lobbyID + "'>Join</button>";
     let categoryOptions = "<select id='category" + lobbyID + "' onchange='changeCategory(" + lobbyID + ")'>" + "<option value='9' selected>General Knowledge</option>" +
@@ -199,57 +218,56 @@ createLobby = function(lobbyID, nameFromServer, size, category){
     }
 }
 
-joinLobby = function(value){
-    socket.emit("joinLobby", {
-        lobbyID: value,
-        name: username
-    });
-    $("#joinButton" + value).attr("disabled", true);
-    $("#startButton").attr("disabled", true);
-};
-
-updateLobbyCount = function(lobbyID, size){
-    $("#lobbyCount" + lobbyID).val(size);
-    $("#lobbyCount" + lobbyID).html(size + "/4");
-}
-
-updateLobbyCategory = function(lobbyID, category){
-    $("#category" + lobbyID).val(category);
-}
-
-changeCategory = function(id){
+// Request to change lobby category 
+function changeCategory(id){
     socket.emit("changeCategory", {
         lobbyID: id,
         category: $("#category" + id).val()
     });
 }
 
-changeColor = function(id){
-    $("#car" + (id - 1)).attr("src", "client/images/" + $("#color" + id).val() + "Car.png");
-    socket.emit("changeColor", [id, $("#color" + id).val()]);
+// Changes lobby category on server approval
+function updateLobbyCategory(lobbyID, category){
+    $("#category" + lobbyID).val(category);
 }
 
-colorUpdate = function(data){
-    $("#car" + (data.car - 1)).attr("src", "client/images/" + data.color + "Car.png");
-    $("#color" + (data.car)).val(data.color);
-}
+// Request to join lobby
+function joinLobby(value){
+    socket.emit("joinLobby", {
+        lobbyID: value,
+        name: username
+    });
+    // Disable host privileges
+    $("#joinButton" + value).attr("disabled", true);
+    $("#startButton").attr("disabled", true);
+};
 
-playerHop = function(lobbyID, size, host){
+// Handle player joining or leaving a lobby
+function playerHop(lobbyID, size, host){
     $("#lobbyCount" + lobbyID).html(size + "/4");
     if (username != host){
         $("#joinButton" + lobbyID).removeAttr("disabled");
     }
 }
 
-lockLobby = function(lobbyID){
+// Updates lobby count
+function updateLobbyCount(lobbyID, size){
+    $("#lobbyCount" + lobbyID).val(size);
+    $("#lobbyCount" + lobbyID).html(size + "/4");
+}
+
+// Disable join for a full lobby
+function lockLobby(lobbyID){
     $("#joinButton" + lobbyID).attr("disabled", true);
 }
 
-startGameMsg = function(){
+// Request to start game
+function startGameMsg(){
     socket.emit("startGame", username);
 }
 
-startGame = function(data){
+// Move players in a lobby to game state
+function startGame(data){
     party = data.party;
     assignPlayers(data.party);
 
@@ -257,6 +275,29 @@ startGame = function(data){
     loadGamePage();
 }
 
+// Delete lobby when game is started or host joins another lobby
+function deleteLobby(data){
+    $("#lobbyRow" + data.lobbyID).remove();
+    $("#createLobbyButton").removeAttr("disabled");
+}
+
+/*--------------------------Game page functions----------------------------*/
+
+const gamePageElements = ["gamePage", "ctx", "readyUpWindow", "backButton", "answerBox", "racetrack"];
+const homePageElements = ["homePage"];
+
+// Hide home page and reveal game page
+function loadGamePage(){
+    $("#homePage").attr("style", "display: none");
+
+    for (let element in gamePageElements){
+        $("#" + gamePageElements[element]).attr("style", "display: block");
+    }
+
+    lockAnswers(true);
+}
+
+// Assign player roles and permissions
 assignPlayers = function(party){
     for (let i = 0; i < 4; i++){
         $("#player" + (i + 1)).html(party[i]);
@@ -283,7 +324,12 @@ assignPlayers = function(party){
             $("#p4ReadyUp, #color4").removeAttr("disabled");
     }
 
-    // Ready up empty players and assign columns
+    // Set individual lanes for each player
+    assignLanes();
+}
+
+// Ready up empty players and assign lanes
+function assignLanes(){
     for (let i = 0; i < 4; i++){
         if (party[i] == "Empty"){
             $("#p" + (i + 1) + "ReadyUp").prop("checked", true);
@@ -310,62 +356,75 @@ assignPlayers = function(party){
     }
 }
 
-readyUp = function(){
+// Handler for host increasing score to win
+increment = function(){
+    if ($("#scoreToWin").val() < 10){
+        $("#scoreToWin").get(0).value++;
+        socket.emit("scoreToWinChange", [username, $("#scoreToWin").val()]);
+    }
+}
+
+// Handler for host decreasing score to win
+decrement = function(){
+    if ($("#scoreToWin").val() > 1){
+        $("#scoreToWin").get(0).value--;
+        socket.emit("scoreToWinChange", [username, $("#scoreToWin").val()]);
+    }
+}
+
+// Update score to win on host changing it
+function updateScoreToWin(quantity){
+    $("#scoreToWin").val(quantity);
+}
+
+// Change color of car and notify server
+function changeColor(id){
+    $("#car" + (id - 1)).attr("src", "client/images/" + $("#color" + id).val() + "Car.png");
+    socket.emit("changeColor", [id, $("#color" + id).val()]);
+}
+
+// Handle party members changing car color
+function colorUpdate(data){
+    $("#car" + (data.car - 1)).attr("src", "client/images/" + data.color + "Car.png");
+    $("#color" + (data.car)).val(data.color);
+}
+
+// Notify server player is ready (starts when all 4 are checked)
+function readyUp(){
     socket.emit("initialReadyUp", username);
 }
 
-playerReadyUp = function(playerNumber){
+// Display ready checks for players that have "ready upped"
+function playerReadyUp(playerNumber){
     $("#p" + (playerNumber + 1) + "ReadyUp").prop("checked", true);
     $("#p" + (playerNumber + 1) + "ReadyUp").attr("disabled", true);
 }
 
-gamePageElements = ["gamePage", "ctx", "readyUpWindow", "backButton", "answerBox", "racetrack"];
-homePageElements = ["homePage"];
-
-loadHomePage = function(data){
-    // Hide Game Page Elements
-    for (let element in gamePageElements){
-        $("#" + gamePageElements[element]).attr("style", "display: none");
-    }
-
-    // Reveal Home Page Elements
-    $("#homePage").attr("style", "display: block");
-
-    if (data == "quit"){
-        socket.emit("quit", username);
-    }
-
-    resetGameState();
+// Start the countdown and game when all players have "ready upped"
+function playGame(){
+    $("#readyUpWindow").attr("style", "display: none");
+    socket.emit("playGame", username);
 }
 
-loadGamePage = function(){
-    // Hide Home Page Elements
-    $("#homePage").attr("style", "display: none");
+const circles = document.querySelectorAll('.circle')
+let activeLight = 0;
+$("#stoplight").hide();
 
-    // Reveal Game Page Elements
-    for (let element in gamePageElements){
-        $("#" + gamePageElements[element]).attr("style", "display: block");
+// Controls stoplight changing colors on countdown
+function changeLight(){
+    circles[activeLight].className = 'circle';
+    activeLight++;
+  
+    if(activeLight > 2) {
+        activeLight = 0;
     }
-
-    lockAnswers(true);
+  
+    const currentLight = circles[activeLight]
+    currentLight.classList.add(currentLight.getAttribute('color'));
 }
 
-resetGameState = function(){
-    for (let i = 0; i < 4; i++){
-        $("#car" + i).attr("style", "margin-bottom: 0");
-        $("#car" + i).attr("src", "client/images/whiteCar.png");
-        $("#answer" + i).html("&#" + (65 + i) + ";");
-        $("#p" + (i + 1) + "ReadyUp").prop("checked", false);
-    }
-    $("#resultsWindow, #winner, .pyro").attr("style", "display: none");
-    $("#startButton").attr("disabled", true);
-    $("#scoreToWin").val(5);
-    $("#countdowntimer").html("Game Starting");
-    $("#countdowntimer").hide();
-    $("#stoplight").hide("fast");
-}
-
-startCountDown = function(data){
+// Initiate race countdown
+function startCountDown(data){
     $("#carList, #finishLine, #playerList").attr("style",  "filter: blur(4px)");
     $("#countdowntimer").attr("style", "display: block");
     $("#stoplight").show(1200);
@@ -384,7 +443,25 @@ startCountDown = function(data){
     },1200);
 }
 
-startTimer = function(time){
+// Display the question retrieved from server
+function displayQuestion(data){
+    lockAnswers(false);
+    $("#carList, #finishLine, #playerList").attr("style",  "filter: blur(4px)");
+    $("#question").html(data.question['question']);
+    $("#question").attr("style", "display: block");
+    setAnswerChoices(data);
+    startTimer(10);
+}
+
+// Set the (shuffled) answer choices
+function setAnswerChoices(data){
+    for (let i = 0; i < 4; i++){
+        document.getElementById("answer" + i).innerHTML = data['question']["shuffledAnswers"][i];
+    }
+};  
+
+// Initiate 10 second question timer
+function startTimer(time){
     $("#stopwatch").attr("style", "display: block");
     timer = setInterval(function(){
         $("#stopwatch").html(time);
@@ -404,9 +481,30 @@ startTimer = function(time){
             socket.emit("checkAnswers", username);
         }
     },1000);
-    
 };
 
+// Event handler for player choosing answer - sends to server
+function answerMsg(value){
+    socket.emit("playerAnswer", value);
+    $("readyTag1").attr("style", "opacity: 100%");
+    lockAnswers(true);
+}
+
+// Disable answer buttons after picking an answer and in between rounds
+function lockAnswers(bool){
+    if (bool){
+        for (let i = 0; i < 4; i++){
+            $("#answer" + i).attr("disabled", true);
+        }
+    }
+    else{
+        for (let i = 0; i < 4; i++){
+            $("#answer" + i).removeAttr("disabled");
+        }
+    }
+}
+
+// Clears the timer when all players have answered and/or timer expires
 function stopTheClock(){
     clearInterval(timer);
     $("#stopwatch").removeClass("blink_me");
@@ -414,30 +512,20 @@ function stopTheClock(){
     $("#stopwatch").html(10);
     lockAnswers(true);
     socket.emit("checkAnswers", username);
-}
+}        
 
-setAnswerChoices = function(data){
+// Highlights correct answer when timer expires
+function revealAnswer(data){
     for (let i = 0; i < 4; i++){
-        document.getElementById("answer" + i).innerHTML = data['question']["shuffledAnswers"][i];
+        if ($("#answer" + [i]).text() == data){
+            $("#answer" + [i]).addClass("highlight");
+            return i;
+        }
     }
-};                
-
-answerMsg = function(value){
-    socket.emit("playerAnswer", value);
-    $("readyTag1").attr("style", "opacity: 100%");
-    lockAnswers(true);
 }
 
-displayQuestion = function(data){
-    lockAnswers(false);
-    $("#carList, #finishLine, #playerList").attr("style",  "filter: blur(4px)");
-    $("#question").html(data.question['question']);
-    $("#question").attr("style", "display: block");
-    setAnswerChoices(data);
-    startTimer(10);
-}
-
-movePlayers = function(data){
+// Move cars for players who answered correctly, start next round
+function movePlayers(data){
     for (let i = 1; i < 5; i++){
         $("#readyTag" + i).attr("style", "opacity: 0%");        
     }
@@ -461,57 +549,23 @@ movePlayers = function(data){
     }, 2000, username);   
 }
 
-lockAnswers = function(bool){
-    if (bool){
-        for (let i = 0; i < 4; i++){
-            $("#answer" + i).attr("disabled", true);
-        }
+// Display animations and results when player wins or 50 question limit exceeded
+function gameover(data){
+    setResults(data);
+    if (username == data.winner){
+        winnerAnimation(data);
     }
     else{
-        for (let i = 0; i < 4; i++){
-            $("#answer" + i).removeAttr("disabled");
-        }
+        loserAnimation(data);
     }
 }
 
-revealAnswer = function(data){
-    for (let i = 0; i < 4; i++){
-        if ($("#answer" + [i]).text() == data){
-            $("#answer" + [i]).addClass("highlight");
-            return i;
-        }
-    }
-}
-
-increment = function(){
-    if ($("#scoreToWin").val() < 10){
-        $("#scoreToWin").get(0).value++;
-        socket.emit("scoreToWinChange", [username, $("#scoreToWin").val()]);
-    }
-}
-
-decrement = function(){
-    if ($("#scoreToWin").val() > 1){
-        $("#scoreToWin").get(0).value--;
-        socket.emit("scoreToWinChange", [username, $("#scoreToWin").val()]);
-    }
-}
-
-updateScoreToWin = function(quantity){
-    $("#scoreToWin").val(quantity);
-}
-
-convertMatrix = function(data){
-    let arr = [];
-    for (let i = 0; i < 4; i++){
-        arr.push(data.scores[i][1]);
-    }
-}
-
+// Sort the scores and set the placings
 function setResults(data){
     data.score = (data.score).sort(function(a,b) {
         return b[1] - a[1]
     });
+
     $("#firstPlace").html(data.score[0][0]);
     $("#secondPlace").html(data.score[1][0]);
     $("#thirdPlace").html(data.score[2][0]);
@@ -522,7 +576,8 @@ function setResults(data){
     $(".scoreBase").html("/" + data.numberOfRounds);
 }
 
-winnerAnimation = function(data){
+// Display winner animation to winner
+function winnerAnimation(data){
     $(".pyro").attr("style", "display: block");
     $("#winner").attr("style", "display: block");
     setTimeout(function(){
@@ -533,7 +588,8 @@ winnerAnimation = function(data){
     }, 3000);
 }
 
-loserAnimation = function(data){
+// Display loser animation to all other players (currently just results window)
+function loserAnimation(data){
     setTimeout(function(){
         $("#resultsWindow").attr("style", "display: block");
         $("#resultsWindow").animate({
@@ -541,27 +597,44 @@ loserAnimation = function(data){
         }, 1000);
 
     }, 3000);
+}     
+
+// Load the home page and hide game page when players disconnect or leave after game
+function loadHomePage(data){
+    // Hide Game Page Elements
+    for (let element in gamePageElements){
+        $("#" + gamePageElements[element]).attr("style", "display: none");
+    }
+
+    // Reveal Home Page Elements
+    $("#homePage").attr("style", "display: block");
+
+    if (data == "quit"){
+        socket.emit("quit", username);
+    }
+
+    resetGameState();
 }
 
+// Reset the original state of the game after players have left
+resetGameState = function(){
+    for (let i = 0; i < 4; i++){
+        $("#car" + i).attr("style", "margin-bottom: 0");
+        $("#car" + i).attr("src", "client/images/whiteCar.png");
+        $("#answer" + i).html("&#" + (65 + i) + ";");
+        $("#p" + (i + 1) + "ReadyUp").prop("checked", false);
+    }
+    $("#resultsWindow, #winner, .pyro").attr("style", "display: none");
+    $("#startButton").attr("disabled", true);
+    $("#scoreToWin").val(5);
+    $("#countdowntimer").html("Game Starting");
+    $("#countdowntimer").hide();
+    $("#stoplight").hide("fast");
+} 
+
+// Load home page and display disconnection alert when player in party disconnects
 disconnection = function(player){
     loadHomePage();
     $("#modal-text").html("" + player + " left the game.");
     $("#myModal").modal();
-}
-
-const circles = document.querySelectorAll('.circle')
-let activeLight = 0;
-$("#stoplight").hide();
-
-changeLight = function(){
-  circles[activeLight].className = 'circle';
-  activeLight++;
-  
-  if(activeLight > 2) {
-    activeLight = 0;
-  }
-  
-  const currentLight = circles[activeLight]
-  
-  currentLight.classList.add(currentLight.getAttribute('color'));
 }

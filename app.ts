@@ -6,7 +6,7 @@ const serv = require('http').Server(app);
 const io = require('socket.io')(serv,{});
 const node_fetch = require('node-fetch');
 
-// HTTP request handler
+// Express endpoint setup
 app.get('/',function(req, res) {
 	res.sendFile(__dirname + '/client/index.html');
 });
@@ -25,6 +25,7 @@ const namesList:string[] = [];
 
 /*----------------Socket communication--------------*/
 io.sockets.on('connection', function(socket){
+	// Create a new user entity on new connection
 	socket.id = Math.random();
 	socket.username = generateName();
 	SOCKET_LIST[socket.id] = socket;
@@ -35,32 +36,32 @@ io.sockets.on('connection', function(socket){
 	// Update connecting users with current game state
 	socket.emit("fetchExistingLobbies", lobbies);
 
-	// Post the new connection in the chat
+	// Broadcast new connection in the chat
 	broadcast({
 		type: "addToChat",
 		msg: "" + socket.username + " connected.",
 		system: true
 	});
 
-	// Update client player count
+	// Update client-side player count
 	broadcast({
 		type: "updatePlayerCount",
 		count: Object.keys(SOCKET_LIST).length
 	});
 
-	// On disconnnection
+	// On player disconnnection
 	socket.on('disconnect', () => {
 		deletePlayerData(socket.username);
 		delete SOCKET_LIST[socket.id];
 
-		// Post the disconnection in the chat
+		// Broadcast the disconnection in the chat
 		broadcast({
 			type: "addToChat",
 			msg: "" + socket.username + " disconnected." ,
 			system: true
 		});
 
-		// Update client player count
+		// Update client-side player count
 		broadcast({
 			type: "updatePlayerCount",
 			count: Object.keys(SOCKET_LIST).length
@@ -78,6 +79,7 @@ io.sockets.on('connection', function(socket){
 	
 	// Handles username change request
 	socket.on("updateName", function(desiredName:string){
+		// Check if name isn't already taken
 		if (!namesList.includes(desiredName)){
 			let isHost:boolean = false;
 			let partyID:string = "";
@@ -126,7 +128,7 @@ io.sockets.on('connection', function(socket){
 		deletePlayerData(socket.username);
 	});
 
-	// Handle new lobby creation
+	// Handle new lobby creation request
 	socket.on("createLobby", () => {
 		removeIfInLobby(socket.username);
 		
@@ -370,10 +372,10 @@ function concludeRound(gameID:any){
 		let winner:any = checkForWinner(gameID);
 
 		// Check for winner or round limit reached
-		if (winner[0] || round == 19){
+		if (winner[0] || round == 49){
 			// Broadcast game over and delete game session
 			partyMessage({
-				type: "gameOver",
+				type: "gameover",
 				winner: winner[1],
 				score: activeGames[gameID]['score'],
 				numberOfRounds: round
@@ -382,7 +384,7 @@ function concludeRound(gameID:any){
 		}
 
 		// Continue/Start playing
-		else if (round != 19){
+		else if (round != 49){
 			if (activeGames[gameID]['ready'].length == 4){
 			
 			// Broadcast question to party
@@ -529,7 +531,7 @@ function decrementLobby(lobby:any, indexToRemove:number){
 
 // Call Open Trivia Database API to retrieve question data
 function getData(category:string){
-    return node_fetch("https://opentdb.com/api.php?amount=21&" + category + "&type=multiple")
+    return node_fetch("https://opentdb.com/api.php?amount=50&" + category + "&type=multiple")
 		.then(res => res.json());
 }
 

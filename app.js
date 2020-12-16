@@ -5,7 +5,7 @@ var app = express();
 var serv = require('http').Server(app);
 var io = require('socket.io')(serv, {});
 var node_fetch = require('node-fetch');
-// HTTP request handler
+// Express endpoint setup
 app.get('/', function (req, res) {
     res.sendFile(__dirname + '/client/index.html');
 });
@@ -21,6 +21,7 @@ var hosts = {};
 var namesList = [];
 /*----------------Socket communication--------------*/
 io.sockets.on('connection', function (socket) {
+    // Create a new user entity on new connection
     socket.id = Math.random();
     socket.username = generateName();
     SOCKET_LIST[socket.id] = socket;
@@ -28,28 +29,28 @@ io.sockets.on('connection', function (socket) {
     socket.emit("playerInfo", socket.username);
     // Update connecting users with current game state
     socket.emit("fetchExistingLobbies", lobbies);
-    // Post the new connection in the chat
+    // Broadcast new connection in the chat
     broadcast({
         type: "addToChat",
         msg: "" + socket.username + " connected.",
         system: true
     });
-    // Update client player count
+    // Update client-side player count
     broadcast({
         type: "updatePlayerCount",
         count: Object.keys(SOCKET_LIST).length
     });
-    // On disconnnection
+    // On player disconnnection
     socket.on('disconnect', function () {
         deletePlayerData(socket.username);
         delete SOCKET_LIST[socket.id];
-        // Post the disconnection in the chat
+        // Broadcast the disconnection in the chat
         broadcast({
             type: "addToChat",
             msg: "" + socket.username + " disconnected.",
             system: true
         });
-        // Update client player count
+        // Update client-side player count
         broadcast({
             type: "updatePlayerCount",
             count: Object.keys(SOCKET_LIST).length
@@ -65,6 +66,7 @@ io.sockets.on('connection', function (socket) {
     });
     // Handles username change request
     socket.on("updateName", function (desiredName) {
+        // Check if name isn't already taken
         if (!namesList.includes(desiredName)) {
             var isHost = false;
             var partyID = "";
@@ -108,7 +110,7 @@ io.sockets.on('connection', function (socket) {
     socket.on("quit", function () {
         deletePlayerData(socket.username);
     });
-    // Handle new lobby creation
+    // Handle new lobby creation request
     socket.on("createLobby", function () {
         removeIfInLobby(socket.username);
         // Create new entry in lobbies dictionary
@@ -315,7 +317,7 @@ function concludeRound(gameID) {
         if (winner[0] || round == 49) {
             // Broadcast game over and delete game session
             partyMessage({
-                type: "gameOver",
+                type: "gameover",
                 winner: winner[1],
                 score: activeGames[gameID]['score'],
                 numberOfRounds: round

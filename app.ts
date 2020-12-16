@@ -130,30 +130,40 @@ io.sockets.on('connection', function(socket){
 
 	// Handle new lobby creation request
 	socket.on("createLobby", () => {
-		removeIfInLobby(socket.username);
+		try{
+			removeIfInLobby(socket.username);
 		
-		// Create new entry in lobbies dictionary
-		lobbies[Object.keys(lobbies).length] = {
-			players: [socket.username],
-			category: '9'
-		};
+			// Create new entry in lobbies dictionary
+			lobbies[Object.keys(lobbies).length] = {
+				players: [socket.username],
+				category: '9'
+			};
 
-		// Broadcast created lobby
-		broadcast({
-			type: "createLobby",
-			lobbyID: Object.keys(lobbies).length - 1,
-			name: socket.username,
-			size: 1,
-			category: lobbies[Object.keys(lobbies).length - 1]['category']
-		});
+			// Broadcast created lobby
+			broadcast({
+				type: "createLobby",
+				lobbyID: Object.keys(lobbies).length - 1,
+				name: socket.username,
+				size: 1,
+				category: lobbies[Object.keys(lobbies).length - 1]['category']
+			});
 
-		// Add creator to hosts
-		hosts[socket.username] = Object.keys(lobbies).length - 1;
+			// Add creator to hosts
+			hosts[socket.username] = Object.keys(lobbies).length - 1;
+		}
+		catch (e){
+			console.error(e);
+		}
 	});
 
 	// Handle player joining a lobby
 	socket.on("joinLobby", function(data:any){
+		try{
 
+		}
+		catch (e){
+			console.error(e);
+		}
 		// Check target lobby current capacity
 		let sizeOfLobby:number = lobbies[data.lobbyID]['players'].length;
 		if (sizeOfLobby < 4){
@@ -197,38 +207,43 @@ io.sockets.on('connection', function(socket){
 
 	// Game setup
 	socket.on("startGame", function(data:any){
-		let lobbyID:number = hosts[data];
+		try{
+			let lobbyID:number = hosts[data];
 
-		// Move players to a party
-		let party:string[] = [];
-		for (let i = 0; i < 4; i++){
-			if (lobbies[lobbyID]['players'][i] == null){
-				party[i] = "Empty";
+			// Move players to a party
+			let party:string[] = [];
+			for (let i = 0; i < 4; i++){
+				if (lobbies[lobbyID]['players'][i] == null){
+					party[i] = "Empty";
+				}
+				else{
+					party[i] = lobbies[lobbyID]['players'][i];
+				}
 			}
-			else{
-				party[i] = lobbies[lobbyID]['players'][i];
-			}
-		}
 
-		// Create active game session
-		createGameSession(lobbyID, party);
+			// Create active game session
+			createGameSession(lobbyID, party);
 
-		// Prepare questions and start game
-		let category:string = "category=" + lobbies[lobbyID]['category'];
-		let wait:any = getData(category);
-		wait.then(function(result){
-			activeGames[lobbyID]['questions'] = result;
-			broadcast({
-				type: "startGame",
-				lobbyID: hosts[data],
-				party: party
+			// Prepare questions and start game
+			let category:string = "category=" + lobbies[lobbyID]['category'];
+			let wait:any = getData(category);
+			wait.then(function(result){
+				activeGames[lobbyID]['questions'] = result;
+				broadcast({
+					type: "startGame",
+					lobbyID: hosts[data],
+					party: party
+				});
+				shuffleAnswers(lobbyID);
 			});
-			shuffleAnswers(lobbyID);
-		});
 
-		// Delete lobby
-		readyUpEmpties(lobbyID);
-		dissolveHostLobby(data); 
+			// Delete lobby
+			readyUpEmpties(lobbyID);
+			dissolveHostLobby(data); 
+			}
+		catch (e){
+			console.error(e);
+		}
 	});
 
 	// Handle player ready up at the ready up window

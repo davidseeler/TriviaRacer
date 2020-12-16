@@ -112,25 +112,35 @@ io.sockets.on('connection', function (socket) {
     });
     // Handle new lobby creation request
     socket.on("createLobby", function () {
-        removeIfInLobby(socket.username);
-        // Create new entry in lobbies dictionary
-        lobbies[Object.keys(lobbies).length] = {
-            players: [socket.username],
-            category: '9'
-        };
-        // Broadcast created lobby
-        broadcast({
-            type: "createLobby",
-            lobbyID: Object.keys(lobbies).length - 1,
-            name: socket.username,
-            size: 1,
-            category: lobbies[Object.keys(lobbies).length - 1]['category']
-        });
-        // Add creator to hosts
-        hosts[socket.username] = Object.keys(lobbies).length - 1;
+        try {
+            removeIfInLobby(socket.username);
+            // Create new entry in lobbies dictionary
+            lobbies[Object.keys(lobbies).length] = {
+                players: [socket.username],
+                category: '9'
+            };
+            // Broadcast created lobby
+            broadcast({
+                type: "createLobby",
+                lobbyID: Object.keys(lobbies).length - 1,
+                name: socket.username,
+                size: 1,
+                category: lobbies[Object.keys(lobbies).length - 1]['category']
+            });
+            // Add creator to hosts
+            hosts[socket.username] = Object.keys(lobbies).length - 1;
+        }
+        catch (e) {
+            console.error(e);
+        }
     });
     // Handle player joining a lobby
     socket.on("joinLobby", function (data) {
+        try {
+        }
+        catch (e) {
+            console.error(e);
+        }
         // Check target lobby current capacity
         var sizeOfLobby = lobbies[data.lobbyID]['players'].length;
         if (sizeOfLobby < 4) {
@@ -167,34 +177,39 @@ io.sockets.on('connection', function (socket) {
     });
     // Game setup
     socket.on("startGame", function (data) {
-        var lobbyID = hosts[data];
-        // Move players to a party
-        var party = [];
-        for (var i = 0; i < 4; i++) {
-            if (lobbies[lobbyID]['players'][i] == null) {
-                party[i] = "Empty";
+        try {
+            var lobbyID_1 = hosts[data];
+            // Move players to a party
+            var party_1 = [];
+            for (var i = 0; i < 4; i++) {
+                if (lobbies[lobbyID_1]['players'][i] == null) {
+                    party_1[i] = "Empty";
+                }
+                else {
+                    party_1[i] = lobbies[lobbyID_1]['players'][i];
+                }
             }
-            else {
-                party[i] = lobbies[lobbyID]['players'][i];
-            }
-        }
-        // Create active game session
-        createGameSession(lobbyID, party);
-        // Prepare questions and start game
-        var category = "category=" + lobbies[lobbyID]['category'];
-        var wait = getData(category);
-        wait.then(function (result) {
-            activeGames[lobbyID]['questions'] = result;
-            broadcast({
-                type: "startGame",
-                lobbyID: hosts[data],
-                party: party
+            // Create active game session
+            createGameSession(lobbyID_1, party_1);
+            // Prepare questions and start game
+            var category = "category=" + lobbies[lobbyID_1]['category'];
+            var wait = getData(category);
+            wait.then(function (result) {
+                activeGames[lobbyID_1]['questions'] = result;
+                broadcast({
+                    type: "startGame",
+                    lobbyID: hosts[data],
+                    party: party_1
+                });
+                shuffleAnswers(lobbyID_1);
             });
-            shuffleAnswers(lobbyID);
-        });
-        // Delete lobby
-        readyUpEmpties(lobbyID);
-        dissolveHostLobby(data);
+            // Delete lobby
+            readyUpEmpties(lobbyID_1);
+            dissolveHostLobby(data);
+        }
+        catch (e) {
+            console.error(e);
+        }
     });
     // Handle player ready up at the ready up window
     socket.on("initialReadyUp", function () {

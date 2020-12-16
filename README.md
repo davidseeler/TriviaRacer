@@ -1,6 +1,6 @@
 # Trivia Racer 🏁
 
-Racing-themed broswer game featuring real-time multiplayer and chat<br>
+Racing-themed broswer game featuring real-time multiplayer and chat
 
 ![TriviaRacer](client/images/triviaracer.jpeg)
 

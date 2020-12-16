@@ -1,10 +1,11 @@
-# Trivia Racer
+# Trivia Racer 🏁
 
 Racing-themed broswer game featuring real-time multiplayer and chat<br>
-Test your knowledge with thousands of questions across 18 categories provided by [Open Trivia Database API](https://opentdb.com/api_config.php)<br>
-Play now at http://triviaracer.me or https://triviaracer.herokuapp.com!
 
 ![TriviaRacer](client/images/triviaracer.jpeg)
+
+Test your knowledge with thousands of questions across 18 categories provided by [Open Trivia Database API](https://opentdb.com/api_config.php)<br>
+Play now at http://triviaracer.me or https://triviaracer.herokuapp.com!
 
 ## Installation
 **Node.js 10+ required**

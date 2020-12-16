@@ -312,7 +312,7 @@ function concludeRound(gameID) {
         var round = activeGames[gameID]['round'];
         var winner = checkForWinner(gameID);
         // Check for winner or round limit reached
-        if (winner[0] || round == 19) {
+        if (winner[0] || round == 49) {
             // Broadcast game over and delete game session
             partyMessage({
                 type: "gameOver",
@@ -323,7 +323,7 @@ function concludeRound(gameID) {
             delete activeGames[gameID];
         }
         // Continue/Start playing
-        else if (round != 19) {
+        else if (round != 49) {
             if (activeGames[gameID]['ready'].length == 4) {
                 // Broadcast question to party
                 partyMessage({
@@ -459,7 +459,7 @@ function decrementLobby(lobby, indexToRemove) {
 }
 // Call Open Trivia Database API to retrieve question data
 function getData(category) {
-    return node_fetch("https://opentdb.com/api.php?amount=21&" + category + "&type=multiple")
+    return node_fetch("https://opentdb.com/api.php?amount=50&" + category + "&type=multiple")
         .then(function (res) { return res.json(); });
 }
 // Return host of specificed lobby

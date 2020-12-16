@@ -14,7 +14,7 @@
     "url": "git+https://github.com/davidseeler/TriviaRacer.git"
   },
   "author": "David Seeler",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "http://triviaracer.me"
   },

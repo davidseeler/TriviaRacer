@@ -4,7 +4,7 @@ Real-time multiplayer trivia game featuring thousands of questions across 18 cat
 
 ![TriviaRacer](client/images/triviaracer.jpeg)
 
-Play now at http://triviaracer.me
+Play now at http://triviaracer.me!
 
 ## Installation (for development)
 **Node.js 10+ required**

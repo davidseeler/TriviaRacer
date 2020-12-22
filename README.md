@@ -1,6 +1,6 @@
 # Trivia Racer 🏁
 
-Real-time multiplayer trivia game featuring thousands of questions across 18 categories provided by [Open Trivia API](https://opentdb.com/api_config.php). **Play now at http://triviaracer.me!**
+Real-time multiplayer trivia game featuring thousands of questions across 18 categories, provided by [Open Trivia API](https://opentdb.com/api_config.php). **Play now at https://triviaracer.me!**
 
 ## Preview
 ![trivia-racer](client/images/trivia-racer.gif)

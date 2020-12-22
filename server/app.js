@@ -6,7 +6,7 @@ var path = require('path');
 var serv = require('http').Server(app);
 var io = require('socket.io')(serv, {});
 var node_fetch = require('node-fetch');
-// Express environment setup
+// Express environment configuration
 app.use(express.static(path.join(__dirname + '/../client')));
 app.get('/', function (req, res) {
     res.sendFile(__dirname + '/client/index.html');
@@ -138,32 +138,32 @@ io.sockets.on('connection', function (socket) {
     // Handle player joining a lobby
     socket.on("joinLobby", function (data) {
         try {
+            // Check target lobby current capacity
+            var sizeOfLobby = lobbies[data.lobbyID]['players'].length;
+            if (sizeOfLobby < 4) {
+                // Check if the player is a host or already in another lobby
+                dissolveHostLobby(data.name);
+                removeIfInLobby(data.name);
+                // Add player to target lobby
+                lobbies[data.lobbyID]['players'][sizeOfLobby] = data.name;
+                sizeOfLobby++;
+                // Broadcast the hop to all other players
+                broadcast({
+                    type: "updateLobbies",
+                    lobbyID: data.lobbyID,
+                    size: sizeOfLobby
+                });
+                // Lock the lobby if it is full
+                if (sizeOfLobby == 4) {
+                    broadcast({
+                        type: "lobbyFull",
+                        lobbyID: data.lobbyID
+                    });
+                }
+            }
         }
         catch (e) {
             console.error(e);
-        }
-        // Check target lobby current capacity
-        var sizeOfLobby = lobbies[data.lobbyID]['players'].length;
-        if (sizeOfLobby < 4) {
-            // Check if the player is a host or already in another lobby
-            dissolveHostLobby(data.name);
-            removeIfInLobby(data.name);
-            // Add player to target lobby
-            lobbies[data.lobbyID]['players'][sizeOfLobby] = data.name;
-            sizeOfLobby++;
-            // Broadcast the hop to all other players
-            broadcast({
-                type: "updateLobbies",
-                lobbyID: data.lobbyID,
-                size: sizeOfLobby
-            });
-            // Lock the lobby if it is full
-            if (sizeOfLobby == 4) {
-                broadcast({
-                    type: "lobbyFull",
-                    lobbyID: data.lobbyID
-                });
-            }
         }
     });
     // Handle host changing lobby category
@@ -251,19 +251,24 @@ io.sockets.on('connection', function (socket) {
     });
     // Start the game
     socket.on("playGame", function () {
-        var gameID = getGameID(socket.username);
-        resetReadyPlayers(gameID);
-        // Host sends first question
-        if (socket.username == activeGames[gameID]['players'][0]) {
-            // Broadcast question to party
-            partyMessage({
-                type: "displayQuestion",
-                question: activeGames[gameID]['questions']['results'][0],
-                time: 3
-            }, gameID);
-            // "unready" the players and wait for 4 more ready confirmations
+        try {
+            var gameID = getGameID(socket.username);
             resetReadyPlayers(gameID);
-            setEmptiesAnswer(gameID);
+            // Host sends first question
+            if (socket.username == activeGames[gameID]['players'][0]) {
+                // Broadcast question to party
+                partyMessage({
+                    type: "displayQuestion",
+                    question: activeGames[gameID]['questions']['results'][0],
+                    time: 3
+                }, gameID);
+                // "unready" the players and wait for 4 more ready confirmations
+                resetReadyPlayers(gameID);
+                setEmptiesAnswer(gameID);
+            }
+        }
+        catch (e) {
+            console.error(e);
         }
     });
     // Handle player answering question
@@ -430,20 +435,25 @@ function dissolveHostLobby(username) {
 }
 // Check and remove if player is already in a lobby
 function removeIfInLobby(username) {
-    for (var lobby in lobbies) {
-        if ((lobbies[lobby]['players']).includes(username)) {
-            for (var i = 0; i < (lobbies[lobby]['players']).length; i++) {
-                if ((lobbies[lobby]['players'][i]) == username) {
-                    lobbies[lobby]['players'] = decrementLobby(lobbies[lobby]['players'], i);
-                    broadcast({
-                        type: "playerHop",
-                        lobbyID: lobby,
-                        size: lobbies[lobby]['players'].length,
-                        host: getHostOfLobby(lobby)
-                    });
+    try {
+        for (var lobby in lobbies) {
+            if ((lobbies[lobby]['players']).includes(username)) {
+                for (var i = 0; i < (lobbies[lobby]['players']).length; i++) {
+                    if ((lobbies[lobby]['players'][i]) == username) {
+                        lobbies[lobby]['players'] = decrementLobby(lobbies[lobby]['players'], i);
+                        broadcast({
+                            type: "playerHop",
+                            lobbyID: lobby,
+                            size: lobbies[lobby]['players'].length,
+                            host: getHostOfLobby(lobby)
+                        });
+                    }
                 }
             }
         }
+    }
+    catch (e) {
+        console.error(e);
     }
 }
 // Adjust lobby array on decrement

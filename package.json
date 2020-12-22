@@ -21,6 +21,7 @@
   "homepage": "https://github.com/davidseeler/TriviaRacer#readme",
   "dependencies": {
     "express": "^4.17.1",
+    "heroku-ssl-redirect": "^0.1.1",
     "node-fetch": "^2.6.1",
     "normalize.css": "^8.0.1",
     "socket.io": "^3.0.4"

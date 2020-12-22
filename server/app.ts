@@ -2,15 +2,16 @@
 const express = require('express');
 const { get } = require('http');
 const app = express();
+const path = require('path');
 const serv = require('http').Server(app);
 const io = require('socket.io')(serv,{});
 const node_fetch = require('node-fetch');
 
-// Express endpoint setup
-app.get('/',function(req, res) {
-	res.sendFile(__dirname + '/client/index.html');
+// Express environment setup
+app.use(express.static(path.join(__dirname + '/../client')));
+app.get('/', function (req, res) {
+    res.sendFile(__dirname + '/client/index.html');
 });
-app.use('/client',express.static(__dirname + '/client'));
  
 // Start listening for connections
 serv.listen(process.env.PORT || 2000);

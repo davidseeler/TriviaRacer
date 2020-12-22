@@ -336,19 +336,19 @@ function assignLanes(){
         }
         else{
             if (i == 0){
-                $("#car0").attr("src", "client/images/redCar.png");
+                $("#car0").attr("src", "images/redCar.png");
                 $("#color1").val("red");
             }
             else if (i == 1){
-                $("#car1").attr("src", "client/images/blueCar.png");
+                $("#car1").attr("src", "images/blueCar.png");
                 $("#color2").val("blue");
             }
             else if (i == 2){
-                $("#car2").attr("src", "client/images/yellowCar.png");
+                $("#car2").attr("src", "images/yellowCar.png");
                 $("#color3").val("yellow");
             }
             else{
-                $("#car3").attr("src", "client/images/greenCar.png");
+                $("#car3").attr("src", "images/greenCar.png");
                 $("#color4").val("green");
             }
         }
@@ -379,13 +379,13 @@ function updateScoreToWin(quantity){
 
 // Change color of car and notify server
 function changeColor(id){
-    $("#car" + (id - 1)).attr("src", "client/images/" + $("#color" + id).val() + "Car.png");
+    $("#car" + (id - 1)).attr("src", "images/" + $("#color" + id).val() + "Car.png");
     socket.emit("changeColor", [id, $("#color" + id).val()]);
 }
 
 // Handle party members changing car color
 function colorUpdate(data){
-    $("#car" + (data.car - 1)).attr("src", "client/images/" + data.color + "Car.png");
+    $("#car" + (data.car - 1)).attr("src", "images/" + data.color + "Car.png");
     $("#color" + (data.car)).val(data.color);
 }
 
@@ -620,7 +620,7 @@ function loadHomePage(data){
 resetGameState = function(){
     for (let i = 0; i < 4; i++){
         $("#car" + i).attr("style", "margin-bottom: 0");
-        $("#car" + i).attr("src", "client/images/whiteCar.png");
+        $("#car" + i).attr("src", "images/whiteCar.png");
         $("#answer" + i).html("&#" + (65 + i) + ";");
         $("#p" + (i + 1) + "ReadyUp").prop("checked", false);
     }

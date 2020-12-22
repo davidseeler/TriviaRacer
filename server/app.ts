@@ -2,14 +2,14 @@
 const express = require('express');
 const { get } = require('http');
 const app = express();
-const ssl_redirect = require('heroku-ssl-redirect');
+const sslRedirect = require('heroku-ssl-redirect');
 const path = require('path');
 const serv = require('http').Server(app);
 const io = require('socket.io')(serv,{});
 const node_fetch = require('node-fetch');
 
 // Redirect users to SSL version
-app.use(ssl_redirect());
+app.use(sslRedirect());
 
 // Express endpoint configuration
 app.use(express.static(path.join(__dirname + '/../client')));

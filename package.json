@@ -1,10 +1,10 @@
 {
   "name": "triviaracer",
   "version": "1.0.0",
-  "description": "Trivia Game",
-  "main": "app.js",
+  "description": "Online trivia quiz game",
+  "main": "server/app.js",
   "scripts": {
-    "start": "node app.js"
+    "start": "cd server && node app.js"
   },
   "engines": {
     "node": "14.15.1"

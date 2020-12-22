@@ -1,12 +1,18 @@
+"use strict";
+exports.__esModule = true;
+var heroku_ssl_redirect_1 = require("heroku-ssl-redirect");
 // Setup
 var express = require('express');
 var get = require('http').get;
 var app = express();
+var ssl_redirect = require('heroku-ssl-redirect');
 var path = require('path');
 var serv = require('http').Server(app);
 var io = require('socket.io')(serv, {});
 var node_fetch = require('node-fetch');
-// Express environment configuration
+// Redirect users to SSL version
+app.use(heroku_ssl_redirect_1["default"]());
+// Express endpoint configuration
 app.use(express.static(path.join(__dirname + '/../client')));
 app.get('/', function (req, res) {
     res.sendFile(__dirname + '/client/index.html');
